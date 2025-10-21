@@ -1,6 +1,3 @@
----
-
-```markdown
 # 🧠 FriendZone
 
 **FriendZone**, üniversite öğrencilerinin kişilik özellikleri ve ilgi alanlarına göre **makine öğrenimi (ML)** tabanlı bir şekilde sanal topluluklar oluşturmasını sağlayan sosyal bir platformdur.  
@@ -47,7 +44,6 @@ FriendZone, öğrencilerin:
 ## 🏗️ Proje Klasör Yapısı
 
 ```
-
 FriendZone/
 │
 ├── .env
@@ -83,7 +79,6 @@ FriendZone/
 │   └── processed/
 │
 └── docs/
-
 ```
 
 ---
@@ -91,15 +86,13 @@ FriendZone/
 ## 🔐 .env Örneği
 
 ```
-
 FLASK_ENV=development
 SECRET_KEY=supersecret
 DATABASE_URL=sqlite:///friendzone.db
 OPENAI_API_KEY=sk-xxxx
 PORT=5000
 HOST=0.0.0.0
-
-````
+```
 
 ---
 
@@ -214,7 +207,7 @@ Frontend’de:
 - Backend’i başlat:  
   ```bash
   flask run
-````
+  ```
 
 * Frontend sayfalarını tarayıcıda aç
 * Veri akışı, topluluk eşleşmesi ve GPT önerilerini test et
@@ -226,9 +219,3 @@ Frontend’de:
 Bu proje; yapay zekâ, makine öğrenimi, backend ve frontend teknolojilerini bütüncül bir yapıda bir araya getirir.
 **FriendZone**, öğrenciler arasında anlamlı bağlantılar kurmayı hedefleyen akıllı bir sosyal etkileşim platformudur.
 
-> 👨‍💻 Geliştirici: Ali Toksoy
-> 📅 Başlangıç: 2025
-> 🏛️ Kapsam: Üniversite Bitirme Projesi
-> 🔗 Organizasyon: [BEUN-Graduation-Projects](https://github.com/BEUN-Graduation-Projects)
-
----
