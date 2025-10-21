@@ -226,6 +226,9 @@ Frontend’de:
 Bu proje; yapay zekâ, makine öğrenimi, backend ve frontend teknolojilerini bütüncül bir yapıda bir araya getirir.
 **FriendZone**, öğrenciler arasında anlamlı bağlantılar kurmayı hedefleyen akıllı bir sosyal etkileşim platformudur.
 
+> 👨‍💻 Geliştirici: Ali Toksoy
+> 📅 Başlangıç: 2025
+> 🏛️ Kapsam: Üniversite Bitirme Projesi
+> 🔗 Organizasyon: [BEUN-Graduation-Projects](https://github.com/BEUN-Graduation-Projects)
 
 ---
-
