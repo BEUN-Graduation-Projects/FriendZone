@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topluluk - FriendZone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/community.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-users"></i>
+                    <span>FriendZone</span>
+                </div>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">K</div>
+                    <div class="user-info">
+                        <span class="username" id="userName">Kullanıcı</span>
+                        <span class="status">Çevrimiçi</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <h3>TOPLULUKLARIM</h3>
+                    <div class="communities-list" id="userCommunitiesList">
+                        <!-- User's communities will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="current-community">
+                    <h3>MEVCUT TOPLULUK</h3>
+                    <div class="community-sidebar-info" id="communitySidebarInfo">
+                        <!-- Current community info will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <h3>GEZİNTİ</h3>
+                    <a href="index.html" class="nav-item">
+                        <i class="fas fa-home"></i>
+                        <span>Ana Sayfa</span>
+                    </a>
+                    <a href="profile.html" class="nav-item">
+                        <i class="fas fa-user"></i>
+                        <span>Profilim</span>
+                    </a>
+                    <a href="communities.html" class="nav-item">
+                        <i class="fas fa-users"></i>
+                        <span>Topluluklar</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="community-detail-container">
+                <!-- Community Header -->
+                <div class="community-header-detail">
+                    <div class="community-banner">
+                        <div class="banner-content">
+                            <div class="community-avatar-large">
+                                <i class="fas fa-users" id="communityHeaderIcon"></i>
+                            </div>
+                            <div class="community-info-main">
+                                <h1 id="communityName">Topluluk Yükleniyor...</h1>
+                                <div class="community-meta">
+                                    <span class="member-count" id="memberCount">
+                                        <i class="fas fa-users"></i>
+                                        <span id="memberCountText">0 üye</span>
+                                    </span>
+                                    <span class="compatibility-score" id="compatibilityScore">
+                                        <i class="fas fa-heart"></i>
+                                        %0 uyum
+                                    </span>
+                                    <span class="community-category" id="communityCategory">
+                                        <i class="fas fa-tag"></i>
+                                        Kategori
+                                    </span>
+                                </div>
+                                <p class="community-description" id="communityDescription">
+                                    Topluluk bilgileri yükleniyor...
+                                </p>
+                            </div>
+                        </div>
+                        <div class="community-actions-header">
+                            <button class="btn btn-secondary" id="leaveCommunityBtn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Topluluktan Ayrıl
+                            </button>
+                            <button class="btn btn-primary" id="gptAssistantBtn">
+                                <i class="fas fa-robot"></i>
+                                AI Asistan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="community-content">
+                    <!-- Left Column - Chat and Activities -->
+                    <div class="content-left">
+                        <!-- Chat Section -->
+                        <div class="chat-section">
+                            <div class="section-header">
+                                <h3>Topluluk Sohbeti</h3>
+                                <div class="chat-actions">
+                                    <button class="btn btn-small btn-secondary" id="clearChatBtn">
+                                        <i class="fas fa-trash"></i>
+                                        Temizle
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="chat-container">
+                                <div class="chat-messages" id="chatMessages">
+                                    <!-- Messages will be loaded here -->
+                                </div>
+
+                                <div class="chat-input-container">
+                                    <div class="chat-input">
+                                        <input type="text" id="messageInput"
+                                               placeholder="Topluluğa mesaj gönder...">
+                                        <button class="btn btn-primary" id="sendMessageBtn">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activities Section -->
+                        <div class="activities-section">
+                            <div class="section-header">
+                                <h3>Son Aktiviteler</h3>
+                            </div>
+                            <div class="activities-list" id="activitiesList">
+                                <!-- Activities will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Members and AI Assistant -->
+                    <div class="content-right">
+                        <!-- Members Section -->
+                        <div class="members-section">
+                            <div class="section-header">
+                                <h3>Topluluk Üyeleri</h3>
+                                <span class="member-count" id="sidebarMemberCount">0 üye</span>
+                            </div>
+                            <div class="members-list" id="membersList">
+                                <!-- Members will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- AI Assistant Section -->
+                        <div class="assistant-section">
+                            <div class="section-header">
+                                <h3>AI Asistan</h3>
+                                <i class="fas fa-robot"></i>
+                            </div>
+
+                            <div class="assistant-actions">
+                                <button class="assistant-btn" data-type="topic">
+                                    <i class="fas fa-comments"></i>
+                                    <span>Sohbet Konusu Öner</span>
+                                </button>
+                                <button class="assistant-btn" data-type="icebreaker">
+                                    <i class="fas fa-snowflake"></i>
+                                    <span>Buz Kırıcı Soru</span>
+                                </button>
+                                <button class="assistant-btn" data-type="activity">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Etkinlik Öner</span>
+                                </button>
+                            </div>
+
+                            <div class="assistant-response" id="assistantResponse">
+                                <div class="response-placeholder">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <p>Yukarıdaki butonlardan birini seçerek AI asistanı kullanabilirsin</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Community Stats -->
+                        <div class="stats-section">
+                            <div class="section-header">
+                                <h3>Topluluk İstatistikleri</h3>
+                            </div>
+                            <div class="stats-grid" id="communityStats">
+                                <!-- Stats will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div class="modal" id="assistantModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-robot"></i>
+                    AI Asistan
+                </h3>
+                <button class="modal-close" id="closeAssistantModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="assistant-chat" id="assistantChat">
+                    <div class="assistant-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                Merhaba! Ben FriendZone AI asistanı. Topluluğunuz için sohbet konuları,
+                                etkinlik önerileri ve buz kırıcı sorular üretebilirim. Nasıl yardımcı olabilirim?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="assistant-quick-actions">
+                    <button class="quick-action-btn" data-prompt="Bu topluluk için 3 ilgi çekici sohbet konusu öner">
+                        <i class="fas fa-comments"></i>
+                        Sohbet Konuları
+                    </button>
+                    <button class="quick-action-btn" data-prompt="Bu topluluk için 5 eğlenceli buz kırıcı soru üret">
+                        <i class="fas fa-snowflake"></i>
+                        Buz Kırıcılar
+                    </button>
+                    <button class="quick-action-btn" data-prompt="Bu topluluk için 3 uygulanabilir etkinlik öner">
+                        <i class="fas fa-calendar-alt"></i>
+                        Etkinlik Önerileri
+                    </button>
+                </div>
+
+                <div class="assistant-input">
+                    <input type="text" id="assistantInput"
+                           placeholder="AI asistanına soru sor...">
+                    <button class="btn btn-primary" id="sendAssistantMessageBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/communityManager.js"></script>
+    <script src="js/gptAssistant.js"></script>
+</body>
+</html>

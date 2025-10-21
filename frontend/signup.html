@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol - FriendZone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Sol Taraf - Görsel ve Bilgilendirme -->
+        <div class="auth-sidebar">
+            <div class="sidebar-content">
+                <div class="brand-section">
+                    <div class="auth-logo large">
+                        <i class="fas fa-users"></i>
+                        <span>FriendZone</span>
+                    </div>
+                    <h1>Üniversite Hayatını<br>Dönüştür</h1>
+                    <p class="brand-subtitle">AI destekli topluluklarla mükemmel eşleşmeleri keşfet</p>
+                </div>
+
+                <div class="features-showcase">
+                    <div class="feature-highlight">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Kişilik Analizi</h4>
+                            <p>Bilimsel kişilik testi ile kendini keşfet</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-highlight">
+                        <div class="feature-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Hobi Eşleşmesi</h4>
+                            <p>Ortak ilgi alanlarına sahip öğrencilerle tanış</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-highlight">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h4>AI Destekli</h4>
+                            <p>Yapay zeka ile optimize edilmiş topluluk önerileri</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-highlight">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h4>Güvenli Ortam</h4>
+                            <p>Doğrulanmış üniversiteli topluluğu</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <div class="stat-item">
+                        <div class="stat-number">1.2K+</div>
+                        <div class="stat-label">Aktif Öğrenci</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">150+</div>
+                        <div class="stat-label">Topluluk</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">98%</div>
+                        <div class="stat-label">Memnuniyet</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-background">
+                <div class="floating-shapes">
+                    <div class="shape shape-1"></div>
+                    <div class="shape shape-2"></div>
+                    <div class="shape shape-3"></div>
+                    <div class="shape shape-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Taraf - Kayıt Formu -->
+        <div class="auth-main">
+            <div class="auth-card-container">
+                <div class="auth-card">
+                    <div class="card-header">
+                        <h2>Hesap Oluştur</h2>
+                        <p>FriendZone'a katıl ve topluluklarını keşfet</p>
+                    </div>
+
+                    <form class="auth-form" id="signupForm">
+                        <!-- Kişisel Bilgiler Bölümü -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-user"></i>
+                                Kişisel Bilgiler
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="name">Ad Soyad *</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" id="name" name="name" required
+                                               placeholder="Adınız ve soyadınız">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="email">Üniversite E-posta *</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" name="email" required
+                                               placeholder="ornek@universite.edu.tr">
+                                    </div>
+                                    <div class="input-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Sadece üniversite e-posta adresleri kabul edilir
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="password">Şifre *</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" id="password" name="password" required
+                                               placeholder="En az 6 karakter">
+                                        <button type="button" class="password-toggle" id="passwordToggle">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div id="passwordStrength" class="password-strength">
+                                        <div class="strength-bar">
+                                            <div class="strength-fill"></div>
+                                        </div>
+                                        <span class="strength-text">Şifre gücü: Zayıf</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Üniversite Bilgileri Bölümü -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-graduation-cap"></i>
+                                Üniversite Bilgileri
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="university">Üniversite *</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-university"></i>
+                                        <select id="university" name="university" required>
+                                            <option value="">Üniversitenizi seçin</option>
+                                            <option value="İstanbul Teknik Üniversitesi">İstanbul Teknik Üniversitesi</option>
+                                            <option value="Orta Doğu Teknik Üniversitesi">Orta Doğu Teknik Üniversitesi</option>
+                                            <option value="Boğaziçi Üniversitesi">Boğaziçi Üniversitesi</option>
+                                            <option value="İstanbul Üniversitesi">İstanbul Üniversitesi</option>
+                                            <option value="Ankara Üniversitesi">Ankara Üniversitesi</option>
+                                            <option value="Hacettepe Üniversitesi">Hacettepe Üniversitesi</option>
+                                            <option value="Yıldız Teknik Üniversitesi">Yıldız Teknik Üniversitesi</option>
+                                            <option value="Marmara Üniversitesi">Marmara Üniversitesi</option>
+                                            <option value="Ege Üniversitesi">Ege Üniversitesi</option>
+                                            <option value="Dokuz Eylül Üniversitesi">Dokuz Eylül Üniversitesi</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down select-arrow"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row columns-2">
+                                <div class="form-group">
+                                    <label for="department">Bölüm *</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-book"></i>
+                                        <input type="text" id="department" name="department" required
+                                               placeholder="Bölümünüz">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="year">Sınıf *</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <select id="year" name="year" required>
+                                            <option value="">Sınıf seçin</option>
+                                            <option value="1">1. Sınıf</option>
+                                            <option value="2">2. Sınıf</option>
+                                            <option value="3">3. Sınıf</option>
+                                            <option value="4">4. Sınıf</option>
+                                            <option value="5">Lisansüstü</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down select-arrow"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Şartlar ve Koşullar -->
+                        <div class="form-section">
+                            <div class="terms-agreement">
+                                <label class="checkbox-container large">
+                                    <input type="checkbox" id="terms" required>
+                                    <span class="checkmark"></span>
+                                    <div class="terms-text">
+                                        <span>
+                                            <a href="#" class="terms-link">Kullanım Koşulları</a>
+                                            ve
+                                            <a href="#" class="terms-link">Gizlilik Politikası</a>'nı
+                                            okudum ve kabul ediyorum
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-full btn-large">
+                                <i class="fas fa-user-plus"></i>
+                                Hesap Oluştur
+                            </button>
+
+                            <div class="auth-divider">
+                                <span>veya</span>
+                            </div>
+
+                            <a href="login.html" class="btn btn-secondary btn-full">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Zaten Hesabım Var
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="card-footer">
+                        <p>Hesap oluşturarak FriendZone topluluğuna katılıyorsun</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim - FriendZone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-users"></i>
+                    <span>FriendZone</span>
+                </div>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="user-profile">
+                    <div class="avatar" id="sidebarAvatar">K</div>
+                    <div class="user-info">
+                        <span class="username" id="sidebarUsername">Kullanıcı</span>
+                        <span class="status">Profilim</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <h3>PROFİL MENÜSÜ</h3>
+                    <a href="#personal" class="nav-item active" data-section="personal">
+                        <i class="fas fa-user"></i>
+                        <span>Kişisel Bilgiler</span>
+                    </a>
+                    <a href="#personality" class="nav-item" data-section="personality">
+                        <i class="fas fa-brain"></i>
+                        <span>Kişilik Profili</span>
+                    </a>
+                    <a href="#hobbies" class="nav-item" data-section="hobbies">
+                        <i class="fas fa-heart"></i>
+                        <span>Hobilerim</span>
+                    </a>
+                    <a href="#communities" class="nav-item" data-section="communities">
+                        <i class="fas fa-users"></i>
+                        <span>Topluluklarım</span>
+                    </a>
+                    <a href="#settings" class="nav-item" data-section="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Ayarlar</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3>GEZİNTİ</h3>
+                    <a href="index.html" class="nav-item">
+                        <i class="fas fa-home"></i>
+                        <span>Ana Sayfa</span>
+                    </a>
+                    <a href="communities.html" class="nav-item">
+                        <i class="fas fa-users"></i>
+                        <span>Topluluklar</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="profile-container">
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="profile-banner">
+                        <div class="banner-content">
+                            <div class="profile-avatar-large">
+                                <div class="avatar-image" id="profileAvatar">K</div>
+                                <button class="avatar-edit-btn" id="editAvatarBtn">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                            <div class="profile-info-main">
+                                <h1 id="profileName">Kullanıcı Adı</h1>
+                                <div class="profile-meta">
+                                    <span class="profile-email" id="profileEmail">
+                                        <i class="fas fa-envelope"></i>
+                                        kullanici@universite.edu.tr
+                                    </span>
+                                    <span class="profile-university" id="profileUniversity">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        Üniversite
+                                    </span>
+                                    <span class="profile-status" id="profileStatus">
+                                        <i class="fas fa-circle"></i>
+                                        Çevrimiçi
+                                    </span>
+                                </div>
+                                <p class="profile-bio" id="profileBio">
+                                    Kişisel açıklamanız burada görünecek...
+                                </p>
+                            </div>
+                        </div>
+                        <div class="profile-actions-header">
+                            <button class="btn btn-secondary" id="editProfileBtn">
+                                <i class="fas fa-edit"></i>
+                                Profili Düzenle
+                            </button>
+                            <button class="btn btn-primary" id="shareProfileBtn">
+                                <i class="fas fa-share-alt"></i>
+                                Profili Paylaş
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Content -->
+                <div class="profile-content">
+                    <!-- Left Column - Main Profile Info -->
+                    <div class="content-left">
+                        <!-- Personal Information Section -->
+                        <section class="profile-section active" id="personalSection">
+                            <div class="section-header">
+                                <h2>
+                                    <i class="fas fa-user"></i>
+                                    Kişisel Bilgiler
+                                </h2>
+                            </div>
+
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="fas fa-university"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <h4>Üniversite</h4>
+                                        <p id="infoUniversity">Yükleniyor...</p>
+                                    </div>
+                                </div>
+
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <h4>Bölüm</h4>
+                                        <p id="infoDepartment">Yükleniyor...</p>
+                                    </div>
+                                </div>
+
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <h4>Sınıf</h4>
+                                        <p id="infoYear">Yükleniyor...</p>
+                                    </div>
+                                </div>
+
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <h4>Katılma Tarihi</h4>
+                                        <p id="infoJoinDate">Yükleniyor...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statCommunities">0</div>
+                                    <div class="stat-label">Topluluk</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statFriends">0</div>
+                                    <div class="stat-label">Bağlantı</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statActivities">0</div>
+                                    <div class="stat-label">Etkinlik</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statCompatibility">%0</div>
+                                    <div class="stat-label">Ort. Uyum</div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Personality Profile Section -->
+                        <section class="profile-section" id="personalitySection">
+                            <div class="section-header">
+                                <h2>
+                                    <i class="fas fa-brain"></i>
+                                    Kişilik Profili
+                                </h2>
+                                <button class="btn btn-secondary btn-small" id="retakeTestBtn">
+                                    <i class="fas fa-redo"></i>
+                                    Testi Yeniden Al
+                                </button>
+                            </div>
+
+                            <div class="personality-result">
+                                <div class="result-header">
+                                    <div class="personality-badge" id="personalityType">
+                                        <i class="fas fa-award"></i>
+                                        <span>Kişilik Tipi Yükleniyor...</span>
+                                    </div>
+                                    <div class="compatibility-score">
+                                        <span class="score-value" id="personalityScore">%0</span>
+                                        <span class="score-label">Test Doğruluğu</span>
+                                    </div>
+                                </div>
+
+                                <div class="traits-container">
+                                    <h4>Kişilik Özellikleri</h4>
+                                    <div class="traits-grid" id="personalityTraits">
+                                        <!-- Traits will be loaded here -->
+                                    </div>
+                                </div>
+
+                                <div class="personality-description">
+                                    <h4>Profil Açıklaması</h4>
+                                    <p id="personalityDescription">Kişilik testi sonuçlarınız burada görünecek...</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Hobbies Section -->
+                        <section class="profile-section" id="hobbiesSection">
+                            <div class="section-header">
+                                <h2>
+                                    <i class="fas fa-heart"></i>
+                                    Hobilerim ve İlgi Alanları
+                                </h2>
+                                <button class="btn btn-secondary btn-small" id="editHobbiesBtn">
+                                    <i class="fas fa-edit"></i>
+                                    Hobileri Düzenle
+                                </button>
+                            </div>
+
+                            <div class="hobbies-container">
+                                <div class="hobbies-grid" id="hobbiesGrid">
+                                    <!-- Hobbies will be loaded here -->
+                                </div>
+
+                                <div class="empty-state" id="hobbiesEmpty">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <h3>Henüz hiç hobi eklememişsin</h3>
+                                    <p>Hobi testini tamamlayarak ilgi alanlarını ekleyebilirsin</p>
+                                    <a href="hobbies.html" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i>
+                                        Hobi Testine Git
+                                    </a>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Communities Section -->
+                        <section class="profile-section" id="communitiesSection">
+                            <div class="section-header">
+                                <h2>
+                                    <i class="fas fa-users"></i>
+                                    Topluluklarım
+                                </h2>
+                            </div>
+
+                            <div class="communities-list" id="profileCommunities">
+                                <!-- Communities will be loaded here -->
+                            </div>
+
+                            <div class="empty-state" id="communitiesEmpty">
+                                <div class="empty-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h3>Henüz hiç topluluğa katılmamışsın</h3>
+                                <p>Senin için önerilen toplulukları keşfetmeye başla</p>
+                                <a href="communities.html" class="btn btn-primary">
+                                    <i class="fas fa-compass"></i>
+                                    Toplulukları Keşfet
+                                </a>
+                            </div>
+                        </section>
+
+                        <!-- Settings Section -->
+                        <section class="profile-section" id="settingsSection">
+                            <div class="section-header">
+                                <h2>
+                                    <i class="fas fa-cog"></i>
+                                    Hesap Ayarları
+                                </h2>
+                            </div>
+
+                            <div class="settings-container">
+                                <div class="setting-group">
+                                    <h4>Profil Görünürlüğü</h4>
+                                    <div class="setting-options">
+                                        <label class="radio-container">
+                                            <input type="radio" name="visibility" value="public" checked>
+                                            <span class="checkmark"></span>
+                                            <span class="radio-label">
+                                                <strong>Herkese Açık</strong>
+                                                <span>Profilin tüm FriendZone kullanıcıları tarafından görülebilir</span>
+                                            </span>
+                                        </label>
+                                        <label class="radio-container">
+                                            <input type="radio" name="visibility" value="community">
+                                            <span class="checkmark"></span>
+                                            <span class="radio-label">
+                                                <strong>Sadece Topluluklarım</strong>
+                                                <span>Profilini sadece üye olduğun topluluklar görebilir</span>
+                                            </span>
+                                        </label>
+                                        <label class="radio-container">
+                                            <input type="radio" name="visibility" value="private">
+                                            <span class="checkmark"></span>
+                                            <span class="radio-label">
+                                                <strong>Gizli</strong>
+                                                <span>Profilini sadece sen görebilirsin</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="setting-group">
+                                    <h4>Bildirim Ayarları</h4>
+                                    <div class="setting-options">
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" id="notifCommunity" checked>
+                                            <span class="checkmark"></span>
+                                            <span class="checkbox-label">
+                                                <strong>Topluluk Bildirimleri</strong>
+                                                <span>Topluluk etkinlikleri ve duyuruları</span>
+                                            </span>
+                                        </label>
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" id="notifMessages" checked>
+                                            <span class="checkmark"></span>
+                                            <span class="checkbox-label">
+                                                <strong>Mesaj Bildirimleri</strong>
+                                                <span>Yeni mesaj ve sohbet bildirimleri</span>
+                                            </span>
+                                        </label>
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" id="notifRecommendations">
+                                            <span class="checkmark"></span>
+                                            <span class="checkbox-label">
+                                                <strong>Öneri Bildirimleri</strong>
+                                                <span>Yeni topluluk ve etkinlik önerileri</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="setting-actions">
+                                    <button class="btn btn-primary" id="saveSettingsBtn">
+                                        <i class="fas fa-save"></i>
+                                        Ayarları Kaydet
+                                    </button>
+                                    <button class="btn btn-secondary" id="resetSettingsBtn">
+                                        <i class="fas fa-undo"></i>
+                                        Varsayılana Dön
+                                    </button>
+                                </div>
+
+                                <div class="danger-zone">
+                                    <h4>Tehlikeli Bölge</h4>
+                                    <div class="danger-actions">
+                                        <button class="btn btn-danger" id="deleteAccountBtn">
+                                            <i class="fas fa-trash"></i>
+                                            Hesabı Sil
+                                        </button>
+                                        <button class="btn btn-warning" id="exportDataBtn">
+                                            <i class="fas fa-download"></i>
+                                            Verilerimi İndir
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Right Column - Additional Info -->
+                    <div class="content-right">
+                        <!-- Similar Users -->
+                        <div class="similar-users-card">
+                            <div class="card-header">
+                                <h3>Benzer Öğrenciler</h3>
+                                <a href="#" class="see-all-link">Tümünü Gör</a>
+                            </div>
+                            <div class="similar-users-list" id="similarUsersList">
+                                <!-- Similar users will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="activity-card">
+                            <div class="card-header">
+                                <h3>Son Aktiviteler</h3>
+                            </div>
+                            <div class="activity-list" id="recentActivityList">
+                                <!-- Activities will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Achievement Badges -->
+                        <div class="badges-card">
+                            <div class="card-header">
+                                <h3>Rozetler</h3>
+                            </div>
+                            <div class="badges-grid" id="achievementBadges">
+                                <!-- Badges will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Profili Düzenle</h3>
+                <button class="modal-close" id="closeEditModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="modal-form" id="editProfileForm">
+                <div class="form-group">
+                    <label for="editName">Ad Soyad</label>
+                    <input type="text" id="editName" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editBio">Kişisel Açıklama</label>
+                    <textarea id="editBio" name="bio" rows="3"
+                              placeholder="Kendinizi kısaca tanıtın..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editUniversity">Üniversite</label>
+                        <select id="editUniversity" name="university" required>
+                            <option value="">Seçiniz</option>
+                            <!-- Universities will be populated -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editDepartment">Bölüm</label>
+                        <input type="text" id="editDepartment" name="department" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editYear">Sınıf</label>
+                    <select id="editYear" name="year" required>
+                        <option value="">Seçiniz</option>
+                        <option value="1">1. Sınıf</option>
+                        <option value="2">2. Sınıf</option>
+                        <option value="3">3. Sınıf</option>
+                        <option value="4">4. Sınıf</option>
+                        <option value="5">Lisansüstü</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelEditBtn">
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Değişiklikleri Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/profileHandler.js"></script>
+</body>
+</html>
