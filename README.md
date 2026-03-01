@@ -52,31 +52,90 @@ FriendZone/
 ├── requirements.txt
 │
 ├── backend/
+│   ├── __init__.py
 │   ├── app.py
 │   ├── config.py
-│   ├── models/
-│   ├── routes/
-│   ├── ml/
+│   │
 │   ├── database/
+│   │   ├── __init__.py
+│   │   ├── db_connection.py
+│   │   └── seed_data.py
+│   │
+│   ├── ml/
+│   │   ├── __init__.py
+│   │   ├── clustering_model.py
+│   │   ├── community_assigner.py
+│   │   ├── preprocessing.py
+│   │   ├── similarity_engine.py
+│   │   └── embeddings/
+│   │       └── user_vectors.py
+│   │
+│   ├── models/
+│   │   ├── chat_model.py
+│   │   ├── community_model.py
+│   │   ├── similarity_model.py
+│   │   └── user_model.py
+│   │
+│   ├── routes/
+│   │   ├── assistant_routes.py
+│   │   ├── auth_routes.py
+│   │   ├── chat_routes.py
+│   │   ├── community_routes.py
+│   │   └── test_routes.py
+│   │
 │   ├── services/
+│   │   ├── community_service.py
+│   │   ├── gpt_service.py
+│   │   └── recommendation_service.py
+│   │
 │   └── utils/
+│       ├── helpers.py
+│       ├── logger.py
+│       └── validators.py
 │
 ├── frontend/
-│   ├── index.html
-│   ├── login.html
-│   ├── signup.html
-│   ├── personality_test.html
-│   ├── hobbies.html
+│   ├── chat.html
 │   ├── communities.html
 │   ├── community.html
+│   ├── hobbies.html
+│   ├── index.html
+│   ├── login.html
+│   ├── personality_test.html
 │   ├── profile.html
+│   ├── signup.html
+│   │
+│   ├── assets/
+│   │
 │   ├── css/
-│   ├── js/
-│   └── assets/
+│   │   ├── auth.css
+│   │   ├── chat.css
+│   │   ├── community.css
+│   │   ├── hobbies.css
+│   │   ├── profile.css
+│   │   ├── style.css
+│   │   └── test.css
+│   │
+│   └── js/
+│       ├── auth.js
+│       ├── chatHandler.js
+│       ├── communityHandler.js
+│       ├── communityManager.js
+│       ├── gptAssistant.js
+│       ├── hobbiesHandler.js
+│       ├── main.js
+│       ├── profileHandler.js
+│       └── testHandler.js
+│
 │
 ├── data/
-│   ├── raw/
-│   └── processed/
+│   ├── processed/
+│   │   ├── hobbies_dataset.csv
+│   │   ├── personality_questions.cvs
+│   │   └── user_feedback.json
+│   └── raw/
+│       ├── embeddings.json
+│       └── personality_scores.csv
+│
 │
 └── docs/
 ```
@@ -218,4 +277,5 @@ Frontend’de:
 
 Bu proje; yapay zekâ, makine öğrenimi, backend ve frontend teknolojilerini bütüncül bir yapıda bir araya getirir.
 **FriendZone**, öğrenciler arasında anlamlı bağlantılar kurmayı hedefleyen akıllı bir sosyal etkileşim platformudur.
+
 
