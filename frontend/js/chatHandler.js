@@ -1,582 +1,468 @@
+// frontend/js/chatHandler.js
+
 class ChatHandler {
-    constructor(communityId) {
-        this.communityId = communityId;
-        this.messages = [];
+    constructor() {
+        this.socket = null;
         this.currentUser = null;
-        this.replyTo = null;
-        this.isTyping = false;
-        this.typingUsers = new Set();
-        this.init();
+        currentRoom = null;
+        this.onlineUsers = new Map();
+        this.messageHistory = [];
+        this.isConnected = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
     }
 
-    async init() {
-        await this.loadUserData();
-        await this.loadMessages();
+    /**
+     * Socket.IO bağlantısını başlat
+     */
+    init(userData) {
+        this.currentUser = userData;
+        
+        // Socket.IO sunucusuna bağlan
+        this.socket = io({
+            path: '/socket.io',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: this.maxReconnectAttempts,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            timeout: 20000
+        });
+
         this.setupEventListeners();
-        this.startPolling();
-        this.loadCommunityMembers();
     }
 
-    async loadUserData() {
-        try {
-            const userData = localStorage.getItem('friendzone_user');
-            if (userData) {
-                this.currentUser = JSON.parse(userData);
-            }
-        } catch (error) {
-            console.error('Kullanıcı verisi yüklenemedi:', error);
-        }
-    }
-
-    async loadMessages() {
-        try {
-            const response = await fetch(`/api/chat/${this.communityId}/messages`);
-            const data = await response.json();
-
-            if (data.success) {
-                this.messages = data.messages;
-                this.renderMessages();
-                this.scrollToBottom();
-            } else {
-                throw new Error(data.message);
-            }
-        } catch (error) {
-            console.error('Mesajlar yüklenemedi:', error);
-            this.showError('Mesajlar yüklenemedi');
-        }
-    }
-
-    async loadCommunityMembers() {
-        try {
-            // Topluluk üyelerini yükle
-            const response = await fetch(`/api/community/${this.communityId}/members`);
-            const data = await response.json();
-
-            if (data.success) {
-                this.renderMembers(data.members);
-            }
-        } catch (error) {
-            console.error('Üyeler yüklenemedi:', error);
-        }
-    }
-
+    /**
+     * Socket.IO event listener'larını kur
+     */
     setupEventListeners() {
-        // Mesaj gönderme
-        const sendBtn = document.getElementById('sendMessageBtn');
-        const messageInput = document.getElementById('messageInput');
+        // Bağlantı olayları
+        this.socket.on('connect', () => {
+            console.log('✅ Socket.IO bağlantısı kuruldu');
+            this.isConnected = true;
+            this.reconnectAttempts = 0;
+            this.showNotification('Sohbet sunucusuna bağlanıldı', 'success');
+        });
 
-        sendBtn.addEventListener('click', () => this.sendMessage());
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessage();
+        this.socket.on('disconnect', (reason) => {
+            console.log('❌ Socket.IO bağlantısı koptu:', reason);
+            this.isConnected = false;
+            
+            if (reason === 'io server disconnect') {
+                // Sunucu tarafından koparıldı, yeniden bağlanma
+                setTimeout(() => {
+                    this.socket.connect();
+                }, 1000);
+            }
+            
+            this.showNotification('Sohbet sunucusuyla bağlantı kesildi', 'error');
+        });
+
+        this.socket.on('connect_error', (error) => {
+            console.error('Socket.IO bağlantı hatası:', error);
+            this.reconnectAttempts++;
+            
+            if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                this.showNotification('Sunucuya bağlanılamıyor. Lütfen sayfayı yenileyin.', 'error');
             }
         });
 
-        // Yazma durumu
-        messageInput.addEventListener('input', () => {
-            this.handleTyping();
+        this.socket.on('reconnect', (attemptNumber) => {
+            console.log(`🔄 Yeniden bağlanıldı (${attemptNumber}. deneme)`);
+            this.showNotification('Sohbet sunucusuna yeniden bağlanıldı', 'success');
+            
+            // Yeniden bağlanınca tekrar odaya katıl
+            if (this.currentRoom) {
+                this.joinRoom(this.currentRoom);
+            }
         });
 
-        // Dosya yükleme
-        const fileInput = document.getElementById('fileInput');
-        fileInput.addEventListener('change', (e) => {
-            this.handleFileUpload(e.target.files[0]);
+        // Sohbet odası olayları
+        this.socket.on('user_joined', (data) => {
+            console.log('👤 Kullanıcı katıldı:', data);
+            this.addSystemMessage(`${data.username} sohbete katıldı 🎉`);
+            this.updateOnlineUsers(data);
         });
 
-        // Emoji seçimi
-        const emojiBtn = document.getElementById('emojiBtn');
-        emojiBtn.addEventListener('click', () => {
-            this.toggleEmojiPicker();
+        this.socket.on('user_left', (data) => {
+            console.log('👋 Kullanıcı ayrıldı:', data);
+            this.addSystemMessage(`${data.username} sohbetten ayrıldı 👋`);
+            this.updateOnlineUsers(data);
         });
 
-        // Yanıtı iptal etme
-        const cancelReplyBtn = document.getElementById('cancelReplyBtn');
-        if (cancelReplyBtn) {
-            cancelReplyBtn.addEventListener('click', () => {
-                this.cancelReply();
-            });
-        }
-    }
-
-    async sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        const content = messageInput.value.trim();
-
-        if (!content || !this.currentUser) return;
-
-        try {
-            const messageData = {
-                user_id: this.currentUser.id,
-                content: content,
-                message_type: 'text'
-            };
-
-            if (this.replyTo) {
-                messageData.reply_to = this.replyTo;
+        this.socket.on('new_message', (data) => {
+            console.log('💬 Yeni mesaj:', data);
+            this.displayMessage(data);
+            this.messageHistory.push(data);
+            
+            // Kendi mesajım değilse bildirim göster
+            if (data.user_id !== this.currentUser.id) {
+                this.playNotificationSound();
+                this.updateUnreadCount();
             }
+        });
 
-            const response = await fetch(`/api/chat/${this.communityId}/send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                },
-                body: JSON.stringify(messageData)
-            });
+        this.socket.on('user_typing', (data) => {
+            this.handleTypingIndicator(data);
+        });
 
-            const data = await response.json();
+        this.socket.on('error', (data) => {
+            console.error('Socket.IO hata:', data);
+            this.showNotification(data.message || 'Bir hata oluştu', 'error');
+        });
 
-            if (data.success) {
-                // Mesajı listeye ekle
-                this.messages.push(data.message);
-                this.renderMessages();
-                this.scrollToBottom();
+        // Mesaj silme/düzenleme olayları
+        this.socket.on('message_edited', (data) => {
+            this.updateMessage(data);
+        });
 
-                // Input'u temizle
-                messageInput.value = '';
-                this.cancelReply();
+        this.socket.on('message_deleted', (data) => {
+            this.removeMessage(data.message_id);
+        });
 
-                // Yazma durumunu sıfırla
-                this.stopTyping();
-
-                // GPT asistanını tetikle (belirli koşullarda)
-                this.maybeTriggerAssistant(content);
-            } else {
-                throw new Error(data.message);
-            }
-        } catch (error) {
-            console.error('Mesaj gönderilemedi:', error);
-            this.showError('Mesaj gönderilemedi');
-        }
-    }
-
-    async handleFileUpload(file) {
-        if (!file) return;
-
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('user_id', this.currentUser.id);
-
-            const response = await fetch(`/api/chat/${this.communityId}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.messages.push(data.message);
-                this.renderMessages();
-                this.scrollToBottom();
-            } else {
-                throw new Error(data.message);
-            }
-        } catch (error) {
-            console.error('Dosya yüklenemedi:', error);
-            this.showError('Dosya yüklenemedi');
-        }
-    }
-
-    async reactToMessage(messageId, emoji) {
-        try {
-            const response = await fetch(`/api/chat/message/${messageId}/react`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                },
-                body: JSON.stringify({
-                    user_id: this.currentUser.id,
-                    emoji: emoji
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Mesajı güncelle
-                const messageIndex = this.messages.findIndex(m => m.id === messageId);
-                if (messageIndex !== -1) {
-                    this.messages[messageIndex].reactions = data.reactions;
-                    this.renderMessages();
-                }
-            }
-        } catch (error) {
-            console.error('Tepki eklenemedi:', error);
-        }
-    }
-
-    handleTyping() {
-        if (!this.isTyping) {
-            this.isTyping = true;
-            this.sendTypingStatus(true);
-
-            // 3 saniye sonra yazma durumunu durdur
-            this.typingTimeout = setTimeout(() => {
-                this.stopTyping();
-            }, 3000);
-        } else {
-            clearTimeout(this.typingTimeout);
-            this.typingTimeout = setTimeout(() => {
-                this.stopTyping();
-            }, 3000);
-        }
-    }
-
-    async sendTypingStatus(isTyping) {
-        try {
-            await fetch(`/api/chat/${this.communityId}/typing`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                },
-                body: JSON.stringify({
-                    user_id: this.currentUser.id,
-                    is_typing: isTyping
-                })
-            });
-        } catch (error) {
-            console.error('Yazma durumu gönderilemedi:', error);
-        }
-    }
-
-    stopTyping() {
-        this.isTyping = false;
-        this.sendTypingStatus(false);
-        if (this.typingTimeout) {
-            clearTimeout(this.typingTimeout);
-        }
-    }
-
-    replyToMessage(message) {
-        this.replyTo = message.id;
-        this.showReplyPreview(message);
-    }
-
-    cancelReply() {
-        this.replyTo = null;
-        this.hideReplyPreview();
-    }
-
-    showReplyPreview(message) {
-        const replyPreview = document.getElementById('replyPreview');
-        const replyContent = document.getElementById('replyContent');
-
-        replyContent.innerHTML = `
-            <div class="reply-author">${message.user_name}</div>
-            <div class="reply-content">${this.formatMessageContent(message.content)}</div>
-        `;
-
-        replyPreview.style.display = 'block';
-    }
-
-    hideReplyPreview() {
-        const replyPreview = document.getElementById('replyPreview');
-        replyPreview.style.display = 'none';
-    }
-
-    renderMessages() {
-        const messagesContainer = document.getElementById('chatMessages');
-        messagesContainer.innerHTML = '';
-
-        this.messages.forEach(message => {
-            const messageElement = this.createMessageElement(message);
-            messagesContainer.appendChild(messageElement);
+        this.socket.on('reaction_updated', (data) => {
+            this.updateReaction(data);
         });
     }
 
+    /**
+     * Sohbet odasına katıl
+     */
+    joinRoom(roomId) {
+        if (!this.socket || !this.isConnected) {
+            console.warn('Socket bağlantısı yok');
+            return;
+        }
+
+        this.currentRoom = roomId;
+        
+        this.socket.emit('join_chat', {
+            room_id: roomId,
+            user_id: this.currentUser.id,
+            username: this.currentUser.name
+        });
+
+        console.log(`🚪 Odaya katılınıyor: ${roomId}`);
+    }
+
+    /**
+     * Sohbet odasından ayrıl
+     */
+    leaveRoom(roomId) {
+        if (!this.socket) return;
+
+        this.socket.emit('leave_chat', {
+            room_id: roomId,
+            user_id: this.currentUser.id,
+            username: this.currentUser.name
+        });
+
+        if (this.currentRoom === roomId) {
+            this.currentRoom = null;
+        }
+
+        console.log(`🚪 Odadan ayrılındı: ${roomId}`);
+    }
+
+    /**
+     * Mesaj gönder
+     */
+    sendMessage(content, messageType = 'text') {
+        if (!this.socket || !this.currentRoom) {
+            this.showNotification('Sohbet odasına bağlı değilsiniz', 'warning');
+            return;
+        }
+
+        if (!content.trim()) {
+            return;
+        }
+
+        const messageData = {
+            room_id: this.currentRoom,
+            user_id: this.currentUser.id,
+            username: this.currentUser.name,
+            content: content.trim(),
+            message_type: messageType,
+            timestamp: new Date().toISOString()
+        };
+
+        this.socket.emit('send_message', messageData);
+        
+        // Mesajı hemen kendi ekranında göster (optimistik UI)
+        this.displayMessage({
+            ...messageData,
+            id: 'temp-' + Date.now(),
+            sending: true
+        });
+
+        // Input'u temizle
+        document.getElementById('message-input').value = '';
+    }
+
+    /**
+     * Yazıyor bildirimi gönder
+     */
+    sendTyping(isTyping) {
+        if (!this.socket || !this.currentRoom) return;
+
+        this.socket.emit('typing', {
+            room_id: this.currentRoom,
+            user_id: this.currentUser.id,
+            username: this.currentUser.name,
+            is_typing: isTyping
+        });
+    }
+
+    /**
+     * Mesaj sil
+     */
+    deleteMessage(messageId) {
+        if (!this.socket || !this.currentRoom) return;
+
+        this.socket.emit('delete_message', {
+            room_id: this.currentRoom,
+            user_id: this.currentUser.id,
+            message_id: messageId
+        });
+    }
+
+    /**
+     * Mesaj düzenle
+     */
+    editMessage(messageId, newContent) {
+        if (!this.socket || !this.currentRoom) return;
+
+        this.socket.emit('edit_message', {
+            room_id: this.currentRoom,
+            user_id: this.currentUser.id,
+            message_id: messageId,
+            content: newContent
+        });
+    }
+
+    /**
+     * Mesaja tepki ekle
+     */
+    addReaction(messageId, emoji) {
+        if (!this.socket || !this.currentRoom) return;
+
+        this.socket.emit('add_reaction', {
+            room_id: this.currentRoom,
+            user_id: this.currentUser.id,
+            message_id: messageId,
+            emoji: emoji
+        });
+    }
+
+    /**
+     * Mesajları göster
+     */
+    displayMessage(message) {
+        const messagesContainer = document.getElementById('chat-messages');
+        if (!messagesContainer) return;
+
+        // Geçici mesajı bul ve kaldır
+        if (message.id?.startsWith('temp-')) {
+            const tempMessage = document.getElementById(`msg-${message.id}`);
+            if (tempMessage) tempMessage.remove();
+        }
+
+        const messageElement = this.createMessageElement(message);
+        messagesContainer.appendChild(messageElement);
+        
+        // Son mesaja kaydır
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /**
+     * Mesaj elementi oluştur
+     */
     createMessageElement(message) {
-        const messageGroup = document.createElement('div');
-        messageGroup.className = 'message-group';
-        messageGroup.dataset.messageId = message.id;
+        const isOwnMessage = message.user_id === this.currentUser.id;
+        const div = document.createElement('div');
+        div.id = `msg-${message.id}`;
+        div.className = `message ${isOwnMessage ? 'own-message' : ''} ${message.sending ? 'sending' : ''}`;
 
-        const isCurrentUser = message.user_id === this.currentUser?.id;
-
-        messageGroup.innerHTML = `
-            <div class="message-avatar">
-                ${message.user_name?.charAt(0).toUpperCase() || '?'}
-            </div>
-            <div class="message-content">
-                <div class="message-header">
-                    <span class="message-author">${message.user_name}</span>
-                    <span class="message-time">${this.formatTime(message.timestamp)}</span>
-                </div>
-                ${message.reply_to ? this.createReplyPreview(message.reply_to) : ''}
-                <div class="message-text">${this.formatMessageContent(message.content)}</div>
-                ${message.reactions?.length > 0 ? this.createReactions(message.reactions, message.id) : ''}
-                <div class="message-actions">
-                    <button class="message-action" onclick="chatHandler.replyToMessage(${JSON.stringify(message).replace(/"/g, '&quot;')})">
-                        <i class="fas fa-reply"></i>
-                    </button>
-                    <button class="message-action" onclick="chatHandler.reactToMessage(${message.id}, '👍')">
-                        <i class="fas fa-thumbs-up"></i>
-                    </button>
-                    <button class="message-action" onclick="chatHandler.reactToMessage(${message.id}, '❤️')">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-
-        return messageGroup;
-    }
-
-    createReplyPreview(replyToId) {
-        const repliedMessage = this.messages.find(m => m.id === replyToId);
-        if (!repliedMessage) return '';
-
-        return `
-            <div class="message-reply" onclick="chatHandler.scrollToMessage(${replyToId})">
-                <div class="reply-author">${repliedMessage.user_name}</div>
-                <div class="reply-content">${this.formatMessageContent(repliedMessage.content)}</div>
-            </div>
-        `;
-    }
-
-    createReactions(reactions, messageId) {
-        const reactionCounts = {};
-        const userReactions = new Set();
-
-        reactions.forEach(reaction => {
-            if (!reactionCounts[reaction.emoji]) {
-                reactionCounts[reaction.emoji] = 0;
-            }
-            reactionCounts[reaction.emoji]++;
-
-            if (reaction.user_id === this.currentUser?.id) {
-                userReactions.add(reaction.emoji);
-            }
-        });
-
-        const reactionElements = Object.entries(reactionCounts).map(([emoji, count]) => {
-            const isActive = userReactions.has(emoji);
-            return `
-                <div class="reaction ${isActive ? 'active' : ''}" 
-                     onclick="chatHandler.reactToMessage(${messageId}, '${emoji}')">
-                    <span class="reaction-emoji">${emoji}</span>
-                    <span class="reaction-count">${count}</span>
-                </div>
-            `;
-        });
-
-        return `<div class="message-reactions">${reactionElements.join('')}</div>`;
-    }
-
-    renderMembers(members) {
-        const membersList = document.getElementById('membersList');
-        membersList.innerHTML = '';
-
-        members.forEach(member => {
-            const memberElement = document.createElement('div');
-            memberElement.className = 'member-item';
-            memberElement.innerHTML = `
-                <div class="member-avatar">
-                    ${member.name.charAt(0).toUpperCase()}
-                    <div class="status-indicator ${member.status || 'online'}"></div>
-                </div>
-                <div class="member-info">
-                    <div class="member-name">${member.name}</div>
-                    <div class="member-role">
-                        ${member.role === 'admin' ? '<span class="role-badge">Admin</span>' : 'Üye'}
-                    </div>
-                </div>
-            `;
-            membersList.appendChild(memberElement);
-        });
-    }
-
-    formatMessageContent(content) {
-        // Basit markdown ve link formatlama
-        return content
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')
-            .replace(/\n/g, '<br>');
-    }
-
-    formatTime(timestamp) {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-
-        if (diffMins < 1) return 'şimdi';
-        if (diffMins < 60) return `${diffMins} dk önce`;
-        if (diffHours < 24) return `${diffHours} sa önce`;
-
-        return date.toLocaleDateString('tr-TR', {
-            day: 'numeric',
-            month: 'short',
+        const time = new Date(message.timestamp).toLocaleTimeString('tr-TR', {
             hour: '2-digit',
             minute: '2-digit'
         });
-    }
 
-    scrollToBottom() {
-        const messagesContainer = document.getElementById('chatMessages');
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    scrollToMessage(messageId) {
-        const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
-        if (messageElement) {
-            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            messageElement.style.background = 'var(--bg-accent)';
-            setTimeout(() => {
-                messageElement.style.background = '';
-            }, 2000);
-        }
-    }
-
-    startPolling() {
-        // Yeni mesajları kontrol et
-        setInterval(async () => {
-            await this.checkNewMessages();
-            await this.updateTypingIndicator();
-        }, 3000);
-    }
-
-    async checkNewMessages() {
-        try {
-            const response = await fetch(`/api/chat/${this.communityId}/messages?limit=1`);
-            const data = await response.json();
-
-            if (data.success && data.messages.length > 0) {
-                const latestMessage = data.messages[0];
-                const hasNewMessage = !this.messages.some(m => m.id === latestMessage.id);
-
-                if (hasNewMessage) {
-                    await this.loadMessages();
-                }
-            }
-        } catch (error) {
-            console.error('Yeni mesajlar kontrol edilemedi:', error);
-        }
-    }
-
-    async updateTypingIndicator() {
-        // Yazma durumunu güncelle (gerçek uygulamada WebSocket kullanılır)
-        const typingIndicator = document.getElementById('typingIndicator');
-        if (this.typingUsers.size > 0) {
-            const users = Array.from(this.typingUsers).slice(0, 3);
-            const names = users.map(userId => {
-                const user = this.getUserById(userId);
-                return user ? user.name : 'Birisi';
-            });
-
-            typingIndicator.textContent = `${names.join(', ')} yazıyor...`;
-            typingIndicator.style.display = 'block';
-        } else {
-            typingIndicator.style.display = 'none';
-        }
-    }
-
-    getUserById(userId) {
-        // Kullanıcıyı ID'ye göre bul (gerçek uygulamada üye listesinden)
-        return null;
-    }
-
-    maybeTriggerAssistant(content) {
-        // GPT asistanını tetikleme koşulları
-        const triggerWords = ['yardım', 'öneri', 'fikir', 'ne yapalım', 'sıkıldım', 'yeni'];
-        const shouldTrigger = triggerWords.some(word =>
-            content.toLowerCase().includes(word)
-        );
-
-        if (shouldTrigger) {
-            setTimeout(() => {
-                this.triggerAssistantSuggestion();
-            }, 2000);
-        }
-    }
-
-    async triggerAssistantSuggestion() {
-        try {
-            const response = await fetch('/api/assistant/suggest', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                },
-                body: JSON.stringify({
-                    community_id: this.communityId,
-                    context: 'sohbet_devam'
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success && data.suggestion) {
-                // GPT önerisini sohbete ekle
-                this.addAssistantMessage(data.suggestion);
-            }
-        } catch (error) {
-            console.error('GPT önerisi alınamadı:', error);
-        }
-    }
-
-    addAssistantMessage(content) {
-        const assistantMessage = {
-            id: Date.now(),
-            user_id: 0, // GPT asistanı ID'si
-            user_name: 'FriendZone Asistanı 🤖',
-            content: content,
-            message_type: 'system',
-            timestamp: new Date().toISOString(),
-            reactions: []
-        };
-
-        this.messages.push(assistantMessage);
-        this.renderMessages();
-        this.scrollToBottom();
-    }
-
-    showError(message) {
-        // Hata mesajı göster
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.textContent = message;
-        errorDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #f56565;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            z-index: 1000;
+        div.innerHTML = `
+            <div class="message-avatar">
+                <img src="${message.user_avatar || 'assets/default-avatar.png'}" alt="${message.username}">
+            </div>
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="message-username">${message.username}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-body">
+                    ${this.formatMessageContent(message.content, message.message_type)}
+                </div>
+                <div class="message-footer">
+                    <div class="message-reactions" id="reactions-${message.id}">
+                        ${this.renderReactions(message.reactions)}
+                    </div>
+                    <div class="message-actions">
+                        <button onclick="chatHandler.addReaction('${message.id}', '👍')" class="action-btn" title="Beğen">
+                            👍
+                        </button>
+                        <button onclick="chatHandler.addReaction('${message.id}', '❤️')" class="action-btn" title="Kalp">
+                            ❤️
+                        </button>
+                        <button onclick="chatHandler.addReaction('${message.id}', '😄')" class="action-btn" title="Gülücük">
+                            😄
+                        </button>
+                        ${isOwnMessage ? `
+                            <button onclick="chatHandler.editMessage('${message.id}')" class="action-btn" title="Düzenle">
+                                ✏️
+                            </button>
+                            <button onclick="chatHandler.deleteMessage('${message.id}')" class="action-btn" title="Sil">
+                                🗑️
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
         `;
 
-        document.body.appendChild(errorDiv);
+        return div;
+    }
+
+    /**
+     * Mesaj içeriğini formatla
+     */
+    formatMessageContent(content, type) {
+        if (type === 'image') {
+            return `<img src="${content}" class="message-image" alt="Görsel">`;
+        } else if (type === 'system') {
+            return `<em>${content}</em>`;
+        } else {
+            // Linkleri tıklanabilir yap
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+        }
+    }
+
+    /**
+     * Tepkileri render et
+     */
+    renderReactions(reactions) {
+        if (!reactions || Object.keys(reactions).length === 0) return '';
+        
+        return Object.entries(reactions).map(([emoji, users]) => `
+            <span class="reaction-badge" onclick="chatHandler.toggleReaction('${emoji}')">
+                ${emoji} ${users.length}
+            </span>
+        `).join('');
+    }
+
+    /**
+     * Sistem mesajı ekle
+     */
+    addSystemMessage(content) {
+        const systemMessage = {
+            id: 'system-' + Date.now(),
+            user_id: 0,
+            username: 'Sistem',
+            content: content,
+            message_type: 'system',
+            timestamp: new Date().toISOString()
+        };
+        
+        this.displayMessage(systemMessage);
+    }
+
+    /**
+     * Yazıyor göstergesini yönet
+     */
+    handleTypingIndicator(data) {
+        const indicator = document.getElementById('typing-indicator');
+        if (!indicator) return;
+
+        if (data.is_typing && data.user_id !== this.currentUser.id) {
+            indicator.innerHTML = `${data.username} yazıyor...`;
+            indicator.style.display = 'block';
+            
+            // 3 saniye sonra gizle (eğer yeni bildirim gelmezse)
+            clearTimeout(this.typingTimeout);
+            this.typingTimeout = setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        } else {
+            indicator.style.display = 'none';
+        }
+    }
+
+    /**
+     * Online kullanıcı listesini güncelle
+     */
+    updateOnlineUsers(data) {
+        const onlineList = document.getElementById('online-users');
+        if (!onlineList) return;
+
+        if (data.online_count !== undefined) {
+            document.getElementById('online-count').textContent = data.online_count;
+        }
+
+        // Online kullanıcı listesini güncelle (opsiyonel)
+        if (data.online_users) {
+            // Online listeyi render et
+        }
+    }
+
+    /**
+     * Bildirim sesi çal
+     */
+    playNotificationSound() {
+        // Sayfa görünür değilse ses çalma
+        if (document.hidden) {
+            const audio = new Audio('/assets/sounds/notification.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log('Ses çalınamadı:', e));
+        }
+    }
+
+    /**
+     * Okunmamış mesaj sayısını güncelle
+     */
+    updateUnreadCount() {
+        if (document.hidden) {
+            const count = parseInt(document.title.match(/\d+/) || 0) + 1;
+            document.title = `(${count}) FriendZone`;
+        }
+    }
+
+    /**
+     * Bildirim göster
+     */
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
         setTimeout(() => {
-            errorDiv.remove();
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
         }, 3000);
     }
 
-    toggleEmojiPicker() {
-        // Emoji picker implementasyonu
-        console.log('Emoji picker aç/kapat');
+    /**
+     * Bağlantıyı kapat
+     */
+    disconnect() {
+        if (this.socket) {
+            this.socket.disconnect();
+            this.socket = null;
+        }
+        this.isConnected = false;
+        this.currentRoom = null;
+        console.log('Socket.IO bağlantısı kapatıldı');
     }
 }
 
-// Global chat handler instance
-let chatHandler = null;
-
-// Sayfa yüklendiğinde chat handler'ı başlat
-document.addEventListener('DOMContentLoaded', function() {
-    const communityId = getCommunityIdFromURL(); // URL'den topluluk ID'sini al
-    chatHandler = new ChatHandler(communityId);
-});
-
-function getCommunityIdFromURL() {
-    // URL'den topluluk ID'sini çıkar
-    const urlParams = new URLSearchParams(window.location.search);
-    return parseInt(urlParams.get('id')) || 1; // Varsayılan değer
-}
+// Global chat handler instance'ı
+const chatHandler = new ChatHandler();

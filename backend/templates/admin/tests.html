@@ -1,0 +1,351 @@
+<!-- backend/templates/admin/tests.html -->
+
+{% extends "admin/base.html" %}
+
+{% block title %}Test Sonuçları{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-text"></i> Test Sonuçları</h2>
+    <button class="btn btn-primary" onclick="exportTestResults()">
+        <i class="bi bi-download"></i> Rapor İndir
+    </button>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Test Tamamlama</h5>
+                <h2 id="completion-rate">0%</h2>
+                <small id="completed-tests">0 / 0 kişi</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">En Popüler Kişilik</h5>
+                <h4 id="popular-personality">-</h4>
+                <small id="popular-personality-count">0 kişi</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">En Popüler Hobi</h5>
+                <h4 id="popular-hobby">-</h4>
+                <small id="popular-hobby-count">0 kişi</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Ortalama Hobi</h5>
+                <h2 id="avg-hobbies">0</h2>
+                <small>kişi başına</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Kişilik Tipi Dağılımı</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="personalityChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Hobi Kategorileri Dağılımı</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="hobbyCategoriesChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Hobbies -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">En Popüler Hobiler</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="topHobbies">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Test Results Table -->
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#personality-tab">Kişilik Testleri</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#hobbies-tab">Hobi Seçimleri</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#correlation-tab">Korelasyonlar</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Personality Tab -->
+            <div class="tab-pane active" id="personality-tab">
+                <table id="personalityTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Kişilik Tipi</th>
+                            <th>Kullanıcı Sayısı</th>
+                            <th>Yüzde</th>
+                            <th>Ort. Hobi Sayısı</th>
+                            <th>En Yaygın Hobi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Hobbies Tab -->
+            <div class="tab-pane" id="hobbies-tab">
+                <table id="hobbiesTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Hobi</th>
+                            <th>Kategori</th>
+                            <th>Seçen Kişi Sayısı</th>
+                            <th>Yüzde</th>
+                            <th>En Çok Tercih Eden Kişilik</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Correlation Tab -->
+            <div class="tab-pane" id="correlation-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Kişilik - Hobi İlişkisi</h6>
+                        <div id="correlationHeatmap" style="height: 400px;"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>İstatistiksel Analiz</h6>
+                        <table class="table table-sm" id="correlationStats">
+                            <!-- Will be populated -->
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    loadTestResults();
+});
+
+function loadTestResults() {
+    $.ajax({
+        url: '/admin/api/tests/results',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                updateSummaryCards(response.results);
+                createPersonalityChart(response.results.personality_distribution);
+                createHobbyCategoriesChart(response.results.hobby_categories);
+                displayTopHobbies(response.results.top_hobbies);
+                populatePersonalityTable(response.results);
+                populateHobbiesTable(response.results);
+                updateCorrelationAnalysis(response.results);
+            }
+        },
+        error: function(xhr) {
+            console.error('Test sonuçları yüklenirken hata:', xhr);
+            Swal.fire('Hata!', 'Test sonuçları yüklenemedi', 'error');
+        }
+    });
+}
+
+function updateSummaryCards(results) {
+    $('#completion-rate').text(results.completion_rate + '%');
+    $('#completed-tests').text(`${results.total_tests_completed} / ${results.total_users || 0} kişi`);
+
+    // En popüler kişilik tipi
+    if (results.personality_distribution && results.personality_distribution.length > 0) {
+        const topPersonality = results.personality_distribution[0];
+        $('#popular-personality').text(topPersonality.type);
+        $('#popular-personality-count').text(topPersonality.count + ' kişi');
+    }
+
+    // En popüler hobi
+    if (results.top_hobbies && results.top_hobbies.length > 0) {
+        const topHobby = results.top_hobbies[0];
+        $('#popular-hobby').text(topHobby.hobby);
+        $('#popular-hobby-count').text(topHobby.count + ' kişi');
+    }
+
+    // Ortalama hobi sayısı
+    const totalHobbies = results.top_hobbies.reduce((sum, h) => sum + h.count, 0);
+    const avgHobbies = (totalHobbies / results.total_tests_completed).toFixed(1);
+    $('#avg-hobbies').text(avgHobbies);
+}
+
+function createPersonalityChart(data) {
+    const ctx = document.getElementById('personalityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: data.map(d => d.type),
+            datasets: [{
+                data: data.map(d => d.count),
+                backgroundColor: [
+                    '#0d6efd', '#6610f2', '#6f42c1', '#d63384',
+                    '#dc3545', '#fd7e14', '#ffc107', '#198754',
+                    '#20c997', '#17a2b8', '#6c757d', '#343a40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' }
+            }
+        }
+    });
+}
+
+function createHobbyCategoriesChart(data) {
+    const ctx = document.getElementById('hobbyCategoriesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.map(d => d.category),
+            datasets: [{
+                data: data.map(d => d.count),
+                backgroundColor: [
+                    '#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+function displayTopHobbies(hobbies) {
+    const container = $('#topHobbies');
+    container.empty();
+
+    hobbies.slice(0, 8).forEach((hobby, index) => {
+        const percentage = ((hobby.count / $('#completed-tests').text().split('/')[0]) * 100).toFixed(1);
+        container.append(`
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">${hobby.hobby}</h5>
+                        <h2>${hobby.count}</h2>
+                        <p class="text-muted">kişi (${percentage}%)</p>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+}
+
+function populatePersonalityTable(results) {
+    const tbody = $('#personalityTable tbody');
+    tbody.empty();
+
+    results.personality_distribution.forEach(p => {
+        const percentage = ((p.count / results.total_tests_completed) * 100).toFixed(1);
+        tbody.append(`
+            <tr>
+                <td><strong>${p.type}</strong></td>
+                <td>${p.count}</td>
+                <td>${percentage}%</td>
+                <td>${p.avg_hobbies || '-'}</td>
+                <td>${p.top_hobby || '-'}</td>
+            </tr>
+        `);
+    });
+}
+
+function populateHobbiesTable(results) {
+    const tbody = $('#hobbiesTable tbody');
+    tbody.empty();
+
+    results.top_hobbies.forEach(hobby => {
+        const percentage = ((hobby.count / results.total_tests_completed) * 100).toFixed(1);
+        tbody.append(`
+            <tr>
+                <td>${hobby.hobby}</td>
+                <td>${hobby.category || 'Diğer'}</td>
+                <td>${hobby.count}</td>
+                <td>${percentage}%</td>
+                <td>${hobby.top_personality || '-'}</td>
+            </tr>
+        `);
+    });
+}
+
+function updateCorrelationAnalysis(results) {
+    // Heatmap için basit bir tablo oluştur
+    if (results.correlations) {
+        let html = '<div class="table-responsive"><table class="table table-sm table-bordered">';
+        html += '<thead><tr><th>Kişilik / Hobi</th>';
+
+        results.top_hobbies.slice(0, 5).forEach(h => {
+            html += `<th>${h.hobby}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        results.personality_distribution.slice(0, 5).forEach(p => {
+            html += `<tr><th>${p.type}</th>`;
+            results.top_hobbies.slice(0, 5).forEach(h => {
+                const value = Math.random() * 100; // Gerçek korelasyon verisi lazım
+                html += `<td style="background-color: rgba(13, 110, 253, ${value/100})">${value.toFixed(1)}%</td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        $('#correlationHeatmap').html(html);
+    }
+}
+
+function exportTestResults() {
+    window.location.href = '/admin/api/tests/export';
+}
+</script>
+{% endblock %}

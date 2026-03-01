@@ -1,42 +1,50 @@
+# backend/models/chat_model.py
+
 import json
 from datetime import datetime, timezone
-from backend.database.db_connection import db
-from sqlalchemy.dialects.postgresql import JSONB  # PostgreSQL kullanıyorsan performansı uçurur
+from backend.app import db
+from sqlalchemy import Index  # 🟢 BU İMPORT'U EKLE!
 
 
 class ChatMessage(db.Model):
     __tablename__ = 'chat_messages'
 
+    __table_args__ = (
+        Index('idx_community_timestamp', 'community_id', 'timestamp'),
+        Index('idx_user_messages', 'user_id', 'timestamp'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
-    community_id = db.Column(db.Integer, db.ForeignKey('communities.id', ondelete='CASCADE'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    community_id = db.Column(db.Integer, db.ForeignKey('communities.id', ondelete='CASCADE'), nullable=False,
+                             index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
 
     # İçerik ve Tip
     content = db.Column(db.Text, nullable=False)
-    message_type = db.Column(db.String(20), default='text', index=True)  # Index eklendi
+    message_type = db.Column(db.String(20), default='text', index=True)  # text, image, file, system, etc.
 
-    # Zaman Damgaları (UTC kullanımı düzeltildi)
+    # Zaman Damgaları (UTC kullanımı)
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     edited = db.Column(db.Boolean, default=False)
     edited_at = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
 
     # İlişkisel Yapı
-    reply_to = db.Column(db.Integer, db.ForeignKey('chat_messages.id', ondelete='SET NULL'))
+    reply_to = db.Column(db.Integer, db.ForeignKey('chat_messages.id', ondelete='SET NULL'), nullable=True)
 
     # Esnek Veri (Reactions ve Metadata)
-    # Eğer SQLite kullanıyorsan db.Text kalabilir, ama PostgreSQL ise JSONB kullanmalısın.
     reactions = db.Column(db.JSON, default=dict)
-    metadata_json = db.Column(db.JSON, nullable=True)  # Dosya boyutu, resim çözünürlüğü vb. için
+    metadata_json = db.Column(db.JSON, nullable=True)  # Dosya boyutu, resim çözünürlüğü vb.
 
-    # İlişkiler (Relationships)
-    # back_populates kullanımı backref'ten daha moderndir ve debugging kolaylığı sağlar.
+    # İlişkiler
     user = db.relationship('User', back_populates='messages')
     community = db.relationship('Community', back_populates='messages')
 
     # Yanıt mekanizması için self-referential ilişki
-    replies = db.relationship('ChatMessage',
-                              backref=db.backref('parent', remote_side=[id]),
-                              lazy='dynamic')
+    replies = db.relationship(
+        'ChatMessage',
+        backref=db.backref('parent', remote_side=[id]),
+        lazy='dynamic'
+    )
 
     def __repr__(self):
         return f"<ChatMessage {self.id} by User {self.user_id}>"
@@ -54,6 +62,22 @@ class ChatMessage(db.Model):
         if user_id not in current_reactions[emoji]:
             current_reactions[emoji].append(user_id)
             self.reactions = current_reactions
+            db.session.commit()
+            return True
+        return False
+
+    def remove_reaction(self, user_id: int, emoji: str):
+        """Tepki kaldır"""
+        if not self.reactions or emoji not in self.reactions:
+            return False
+
+        current_reactions = dict(self.reactions)
+        if user_id in current_reactions[emoji]:
+            current_reactions[emoji].remove(user_id)
+            if not current_reactions[emoji]:
+                del current_reactions[emoji]
+            self.reactions = current_reactions
+            db.session.commit()
             return True
         return False
 
@@ -63,7 +87,7 @@ class ChatMessage(db.Model):
             'id': self.id,
             'sender': {
                 'id': self.user_id,
-                'username': self.user.username if self.user else "Unknown"
+                'name': self.user.name if self.user else "Silinmiş Kullanıcı"
             },
             'community_id': self.community_id,
             'content': self.content,
@@ -73,5 +97,6 @@ class ChatMessage(db.Model):
             'edited_at': self.edited_at.isoformat() if self.edited_at else None,
             'reply_to': self.reply_to,
             'reactions': self.reactions or {},
+            'metadata': self.metadata_json or {},
             'has_replies': self.replies.count() > 0
         }

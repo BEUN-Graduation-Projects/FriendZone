@@ -1,0 +1,502 @@
+<!-- backend/templates/admin/communities.html -->
+
+{% extends "admin/base.html" %}
+
+{% block title %}Topluluk Yönetimi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-building"></i> Topluluk Yönetimi</h2>
+    <div>
+        <button class="btn btn-success me-2" onclick="exportCommunities()">
+            <i class="bi bi-download"></i> Excel'e Aktar
+        </button>
+        <button class="btn btn-primary" onclick="showAddCommunityModal()">
+            <i class="bi bi-plus-lg"></i> Yeni Topluluk
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="searchInput"
+                       placeholder="Topluluk adı, açıklama ara...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="categoryFilter">
+                    <option value="all">Tüm Kategoriler</option>
+                    <option value="technology">Teknoloji</option>
+                    <option value="sports">Spor</option>
+                    <option value="arts">Sanat</option>
+                    <option value="outdoor">Doğa</option>
+                    <option value="education">Eğitim</option>
+                    <option value="social">Sosyal</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter">
+                    <option value="all">Tümü</option>
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Pasif</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100" onclick="applyFilters()">
+                    <i class="bi bi-filter"></i> Filtrele
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Toplam Topluluk</h5>
+                <h2 id="total-communities">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Aktif Topluluk</h5>
+                <h2 id="active-communities">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Toplam Üye</h5>
+                <h2 id="total-members">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Toplam Mesaj</h5>
+                <h2 id="total-messages">0</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Communities Table -->
+<div class="card">
+    <div class="card-body">
+        <table id="communitiesTable" class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Topluluk Adı</th>
+                    <th>Kategori</th>
+                    <th>Oluşturan</th>
+                    <th>Üye Sayısı</th>
+                    <th>Mesaj Sayısı</th>
+                    <th>Uyumluluk Skoru</th>
+                    <th>Durum</th>
+                    <th>Oluşturulma</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- DataTable will populate here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Edit Community Modal -->
+<div class="modal fade" id="communityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="communityModalTitle">Yeni Topluluk Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="communityForm">
+                    <input type="hidden" id="communityId">
+
+                    <div class="mb-3">
+                        <label for="communityName" class="form-label">Topluluk Adı</label>
+                        <input type="text" class="form-control" id="communityName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="communityDescription" class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="communityDescription" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="communityCategory" class="form-label">Kategori</label>
+                            <select class="form-select" id="communityCategory" required>
+                                <option value="">Seçiniz...</option>
+                                <option value="technology">Teknoloji</option>
+                                <option value="sports">Spor</option>
+                                <option value="arts">Sanat</option>
+                                <option value="outdoor">Doğa</option>
+                                <option value="education">Eğitim</option>
+                                <option value="social">Sosyal</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="maxMembers" class="form-label">Maksimum Üye</label>
+                            <input type="number" class="form-control" id="maxMembers" value="10" min="2" max="100">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="communityTags" class="form-label">Etiketler (virgülle ayırın)</label>
+                        <input type="text" class="form-control" id="communityTags" placeholder="programlama, yapay zeka, web">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Durum</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="communityStatus" id="statusActive" value="true" checked>
+                                <label class="form-check-label" for="statusActive">Aktif</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="communityStatus" id="statusInactive" value="false">
+                                <label class="form-check-label" for="statusInactive">Pasif</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="saveCommunity()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Community Modal -->
+<div class="modal fade" id="viewCommunityModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Topluluk Detayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewCommunityModalBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" onclick="editCommunityFromView()">Düzenle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let communitiesTable;
+
+$(document).ready(function() {
+    initCommunitiesTable();
+    loadCommunityStats();
+});
+
+function initCommunitiesTable() {
+    communitiesTable = $('#communitiesTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '/admin/api/communities',
+            data: function(d) {
+                d.search = $('#searchInput').val();
+                d.category = $('#categoryFilter').val();
+                d.status = $('#statusFilter').val();
+            }
+        },
+        columns: [
+            { data: 'id' },
+            { data: 'name' },
+            {
+                data: 'category',
+                render: function(data) {
+                    const categories = {
+                        'technology': 'Teknoloji',
+                        'sports': 'Spor',
+                        'arts': 'Sanat',
+                        'outdoor': 'Doğa',
+                        'education': 'Eğitim',
+                        'social': 'Sosyal'
+                    };
+                    return categories[data] || data || '-';
+                }
+            },
+            { data: 'creator_name' },
+            { data: 'current_member_count' },
+            { data: 'total_messages' },
+            {
+                data: 'compatibility_score',
+                render: function(data) {
+                    if (!data) return '-';
+                    const percentage = (data * 100).toFixed(1);
+                    return `
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width: ${percentage}%;"
+                                 aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+                                ${percentage}%
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            {
+                data: 'is_active',
+                render: function(data) {
+                    return data ?
+                        '<span class="badge bg-success">Aktif</span>' :
+                        '<span class="badge bg-danger">Pasif</span>';
+                }
+            },
+            {
+                data: 'created_at',
+                render: function(data) {
+                    return new Date(data).toLocaleDateString('tr-TR');
+                }
+            },
+            {
+                data: null,
+                render: function(data) {
+                    return `
+                        <button class="btn btn-sm btn-info" onclick="viewCommunity(${data.id})">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="editCommunity(${data.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCommunity(${data.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    `;
+                }
+            }
+        ],
+        order: [[0, 'desc']],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/tr.json'
+        }
+    });
+}
+
+function loadCommunityStats() {
+    $.ajax({
+        url: '/admin/api/dashboard/stats',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                $('#total-communities').text(response.stats.communities.total);
+                $('#active-communities').text(response.stats.communities.active);
+                $('#total-members').text(response.stats.users.total);
+                $('#total-messages').text(response.stats.messages.total);
+            }
+        }
+    });
+}
+
+function applyFilters() {
+    communitiesTable.ajax.reload();
+}
+
+function showAddCommunityModal() {
+    $('#communityModalTitle').text('Yeni Topluluk Ekle');
+    $('#communityId').val('');
+    $('#communityForm')[0].reset();
+    $('#communityModal').modal('show');
+}
+
+function editCommunity(id) {
+    $.get(`/admin/api/communities/${id}`, function(response) {
+        if (response.success) {
+            const community = response.community;
+
+            $('#communityModalTitle').text('Topluluk Düzenle');
+            $('#communityId').val(community.id);
+            $('#communityName').val(community.name);
+            $('#communityDescription').val(community.description);
+            $('#communityCategory').val(community.category);
+            $('#maxMembers').val(community.max_members);
+            $('#communityTags').val(community.tags ? community.tags.join(', ') : '');
+
+            if (community.is_active) {
+                $('#statusActive').prop('checked', true);
+            } else {
+                $('#statusInactive').prop('checked', true);
+            }
+
+            $('#communityModal').modal('show');
+        }
+    });
+}
+
+function viewCommunity(id) {
+    $.get(`/admin/api/communities/${id}`, function(response) {
+        if (response.success) {
+            const community = response.community;
+
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Temel Bilgiler</h6>
+                        <table class="table table-sm">
+                            <tr><th>ID:</th><td>${community.id}</td></tr>
+                            <tr><th>Topluluk Adı:</th><td>${community.name}</td></tr>
+                            <tr><th>Kategori:</th><td>${community.category}</td></tr>
+                            <tr><th>Açıklama:</th><td>${community.description || '-'}</td></tr>
+                            <tr><th>Etiketler:</th><td>${community.tags ? community.tags.join(', ') : '-'}</td></tr>
+                            <tr><th>Oluşturan:</th><td>${community.creator_name}</td></tr>
+                            <tr><th>Oluşturulma:</th><td>${new Date(community.created_at).toLocaleString('tr-TR')}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>İstatistikler</h6>
+                        <table class="table table-sm">
+                            <tr><th>Üye Sayısı:</th><td>${community.current_member_count} / ${community.max_members}</td></tr>
+                            <tr><th>Toplam Mesaj:</th><td>${community.total_messages}</td></tr>
+                            <tr><th>Çevrimiçi Üye:</th><td>${community.online_members}</td></tr>
+                            <tr><th>Uyumluluk Skoru:</th><td>${(community.compatibility_score * 100).toFixed(1)}%</td></tr>
+                            <tr><th>Durum:</th><td>${community.is_active ? 'Aktif' : 'Pasif'}</td></tr>
+                            <tr><th>Son Aktivite:</th><td>${community.last_activity ? new Date(community.last_activity).toLocaleString('tr-TR') : '-'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <h6 class="mt-3">Üye Listesi</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Kullanıcı</th>
+                                <th>Rol</th>
+                                <th>Katılma Tarihi</th>
+                                <th>Mesaj Sayısı</th>
+                                <th>Son Aktivite</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            if (community.members && community.members.length > 0) {
+                community.members.forEach(m => {
+                    html += `
+                        <tr>
+                            <td>${m.user?.name || 'Bilinmiyor'}</td>
+                            <td>
+                                ${m.role === 'admin' ? '<span class="badge bg-danger">Admin</span>' :
+                                  m.role === 'moderator' ? '<span class="badge bg-warning">Moderatör</span>' :
+                                  '<span class="badge bg-secondary">Üye</span>'}
+                            </td>
+                            <td>${new Date(m.joined_at).toLocaleDateString('tr-TR')}</td>
+                            <td>${m.message_count || 0}</td>
+                            <td>${m.last_active ? new Date(m.last_active).toLocaleString('tr-TR') : '-'}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html += '<tr><td colspan="5" class="text-center">Henüz üye yok</td></tr>';
+            }
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            $('#viewCommunityModalBody').html(html);
+            $('#viewCommunityModal').modal('show');
+        }
+    });
+}
+
+function editCommunityFromView() {
+    $('#viewCommunityModal').modal('hide');
+    setTimeout(() => {
+        editCommunity($('#communityId').val());
+    }, 500);
+}
+
+function saveCommunity() {
+    const communityData = {
+        name: $('#communityName').val(),
+        description: $('#communityDescription').val(),
+        category: $('#communityCategory').val(),
+        max_members: parseInt($('#maxMembers').val()),
+        tags: $('#communityTags').val().split(',').map(t => t.trim()).filter(t => t),
+        is_active: $('input[name="communityStatus"]:checked').val() === 'true'
+    };
+
+    const communityId = $('#communityId').val();
+    const url = communityId ? `/admin/api/communities/${communityId}` : '/admin/api/communities';
+    const method = communityId ? 'PUT' : 'POST';
+
+    $.ajax({
+        url: url,
+        method: method,
+        contentType: 'application/json',
+        data: JSON.stringify(communityData),
+        success: function(response) {
+            if (response.success) {
+                $('#communityModal').modal('hide');
+                Swal.fire('Başarılı!', communityId ? 'Topluluk güncellendi' : 'Topluluk oluşturuldu', 'success');
+                communitiesTable.ajax.reload();
+                loadCommunityStats();
+            }
+        },
+        error: function(xhr) {
+            Swal.fire('Hata!', xhr.responseJSON?.error || 'Bir hata oluştu', 'error');
+        }
+    });
+}
+
+function deleteCommunity(id) {
+    Swal.fire({
+        title: 'Emin misiniz?',
+        text: "Bu topluluk ve tüm verileri silinecek!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Evet, sil!',
+        cancelButtonText: 'İptal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/admin/api/communities/${id}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire('Silindi!', 'Topluluk başarıyla silindi.', 'success');
+                        communitiesTable.ajax.reload();
+                        loadCommunityStats();
+                    }
+                },
+                error: function() {
+                    Swal.fire('Hata!', 'Topluluk silinirken bir hata oluştu.', 'error');
+                }
+            });
+        }
+    });
+}
+
+function exportCommunities() {
+    window.location.href = '/admin/api/communities/export';
+}
+</script>
+{% endblock %}
