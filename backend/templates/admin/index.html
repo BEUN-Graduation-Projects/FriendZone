@@ -99,58 +99,9 @@
     </div>
 </div>
 
-<!-- Second Row -->
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Topluluk Kategorileri</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="categoriesChart" style="height: 300px;"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Hızlı İstatistikler</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <div class="border rounded p-3 text-center">
-                            <h3 id="total-messages">-</h3>
-                            <small class="text-muted">Toplam Mesaj</small>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="border rounded p-3 text-center">
-                            <h3 id="messages-today">-</h3>
-                            <small class="text-muted">Bugünkü Mesaj</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <h3 id="avg-members">-</h3>
-                            <small class="text-muted">Ort. Üye/Topluluk</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <h3 id="avg-messages">-</h3>
-                            <small class="text-muted">Günlük Ort. Mesaj</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 $(document).ready(function() {
+    console.log("✅ Dashboard yüklendi");
     loadDashboardStats();
 });
 
@@ -159,102 +110,20 @@ function loadDashboardStats() {
         url: '/admin/api/dashboard/stats',
         method: 'GET',
         success: function(response) {
+            console.log("Dashboard verileri:", response);
             if (response.success) {
-                const stats = response.stats;
-
                 // Update cards
-                $('#total-users').text(stats.users.total);
-                $('#active-users').text(stats.users.active);
-                $('#online-now').text(`Şu an çevrimiçi: ${stats.users.online_now}`);
-                $('#completed-tests').text(`${stats.users.completed_tests} kişi`);
-                $('#completion-rate').text(stats.users.completion_rate + '%');
-                $('#total-communities').text(stats.communities.total);
-                $('#active-communities').text(`Aktif: ${stats.communities.active}`);
-                $('#total-messages').text(stats.messages.total);
-                $('#messages-today').text(stats.messages.today);
-                $('#avg-members').text(stats.communities.avg_members);
-                $('#avg-messages').text(stats.messages.avg_per_day);
-
-                // Charts
-                createRegistrationsChart(stats.charts.registrations);
-                createPersonalityChart(stats.charts.personality);
-                createCategoriesChart(stats.charts.categories);
+                $('#total-users').text(response.stats.users.total);
+                $('#active-users').text(response.stats.users.active);
+                $('#online-now').text(`Şu an çevrimiçi: ${response.stats.users.online_now}`);
+                $('#completed-tests').text(`${response.stats.users.completed_tests} kişi`);
+                $('#completion-rate').text(response.stats.users.completion_rate + '%');
+                $('#total-communities').text(response.stats.communities.total);
+                $('#active-communities').text(`Aktif: ${response.stats.communities.active}`);
             }
         },
         error: function(xhr) {
             console.error('Dashboard yüklenirken hata:', xhr);
-            Swal.fire('Hata!', 'Dashboard verileri yüklenemedi', 'error');
-        }
-    });
-}
-
-function createRegistrationsChart(data) {
-    const ctx = document.getElementById('registrationsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.map(d => d.date),
-            datasets: [{
-                label: 'Yeni Kayıt',
-                data: data.map(d => d.count),
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-}
-
-function createPersonalityChart(data) {
-    const ctx = document.getElementById('personalityChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: data.map(d => d.type),
-            datasets: [{
-                data: data.map(d => d.count),
-                backgroundColor: [
-                    '#0d6efd', '#6610f2', '#6f42c1', '#d63384',
-                    '#dc3545', '#fd7e14', '#ffc107', '#198754'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-}
-
-function createCategoriesChart(data) {
-    const ctx = document.getElementById('categoriesChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.map(d => d.category),
-            datasets: [{
-                label: 'Topluluk Sayısı',
-                data: data.map(d => d.count),
-                backgroundColor: '#0d6efd'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            }
         }
     });
 }

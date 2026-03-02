@@ -12,7 +12,7 @@ import os
 # Load environment variables
 load_dotenv()
 
-# Initialize extensions (SINGLETON pattern - TEK bir noktada tanımla)
+# Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
@@ -22,9 +22,14 @@ socketio = SocketIO()
 
 def create_app(config_object=None):
     """Application factory pattern"""
+
+    # TEMPLATE VE STATIC KLASÖR YOLLARINI DÜZELTELİM
+    template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
+    static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static'))
+
     app = Flask(__name__,
-                template_folder='templates',
-                static_folder='static')
+                template_folder=template_dir,
+                static_folder=static_dir)
 
     # Load config
     if config_object:
@@ -44,7 +49,7 @@ def create_app(config_object=None):
     cors.init_app(app)
     socketio.init_app(app, cors_allowed_origins="*")
 
-    # Register blueprints (import işlemlerini burada yap!)
+    # Register blueprints
     with app.app_context():
         # Auth routes
         try:
