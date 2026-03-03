@@ -1,3 +1,5 @@
+// frontend/js/communityManager.js
+
 class CommunityManager {
     constructor() {
         this.currentCommunity = null;
@@ -21,10 +23,9 @@ class CommunityManager {
             const urlParams = new URLSearchParams(window.location.search);
             const communityId = urlParams.get('id') || 1;
 
+            const token = localStorage.getItem('friendzone_token');
             const response = await fetch(`/api/community/${communityId}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();
@@ -41,175 +42,69 @@ class CommunityManager {
         }
     }
 
-    async loadCommunityMembers() {
-        try {
-            if (!this.currentCommunity) return;
-
-            this.communityMembers = this.generateSampleMembers();
-            this.renderCommunityMembers();
-
-        } catch (error) {
-            console.error('Üyeler yüklenemedi:', error);
-        }
+    loadCommunityMembers() {
+        this.communityMembers = this.generateSampleMembers();
+        this.renderCommunityMembers();
     }
 
-    async loadChatMessages() {
-        try {
-            if (!this.currentCommunity) return;
-
-            this.chatMessages = this.generateSampleMessages();
-            this.renderChatMessages();
-
-        } catch (error) {
-            console.error('Sohbet mesajları yüklenemedi:', error);
-        }
+    loadChatMessages() {
+        this.chatMessages = this.generateSampleMessages();
+        this.renderChatMessages();
     }
 
-    async loadActivities() {
-        try {
-            if (!this.currentCommunity) return;
-
-            this.activities = this.generateSampleActivities();
-            this.renderActivities();
-
-        } catch (error) {
-            console.error('Aktiviteler yüklenemedi:', error);
-        }
+    loadActivities() {
+        this.activities = this.generateSampleActivities();
+        this.renderActivities();
     }
 
     generateSampleMembers() {
         return [
-            {
-                id: 1,
-                name: "Ahmet Yılmaz",
-                role: "admin",
-                university: "İstanbul Teknik Üniversitesi",
-                department: "Bilgisayar Mühendisliği",
-                joined_at: "2024-01-15",
-                is_online: true
-            },
-            {
-                id: 2,
-                name: "Ayşe Demir",
-                role: "member",
-                university: "Boğaziçi Üniversitesi",
-                department: "Psikoloji",
-                joined_at: "2024-01-20",
-                is_online: true
-            },
-            {
-                id: 3,
-                name: "Mehmet Kaya",
-                role: "member",
-                university: "Orta Doğu Teknik Üniversitesi",
-                department: "İşletme",
-                joined_at: "2024-01-22",
-                is_online: false
-            },
-            {
-                id: 4,
-                name: "Zeynep Şahin",
-                role: "member",
-                university: "Hacettepe Üniversitesi",
-                department: "Tıp",
-                joined_at: "2024-01-25",
-                is_online: true
-            }
+            { id: 1, name: "Ahmet Yılmaz", role: "admin", university: "İTÜ", department: "Bilgisayar", joined_at: "2024-01-15", is_online: true },
+            { id: 2, name: "Ayşe Demir", role: "member", university: "Boğaziçi", department: "Psikoloji", joined_at: "2024-01-20", is_online: true },
+            { id: 3, name: "Mehmet Kaya", role: "member", university: "ODTÜ", department: "İşletme", joined_at: "2024-01-22", is_online: false }
         ];
     }
 
     generateSampleMessages() {
         return [
-            {
-                id: 1,
-                user_id: 1,
-                user_name: "Ahmet Yılmaz",
-                content: "Merhaba arkadaşlar! Bu hafta sonu için mini bir kodlama workshop'u düzenlemeyi düşünüyorum, ilgilenen var mı?",
-                timestamp: "2024-01-28T14:30:00Z",
-                type: "message"
-            },
-            {
-                id: 2,
-                user_id: 2,
-                user_name: "Ayşe Demir",
-                content: "Harika fikir! Ben katılmak istiyorum. Hangi konu üzerinde çalışmayı düşünüyorsun?",
-                timestamp: "2024-01-28T14:32:00Z",
-                type: "message"
-            },
-            {
-                id: 3,
-                user_id: 4,
-                user_name: "Zeynep Şahin",
-                content: "Ben de katılmak istiyorum. Python ile başlangıç seviyesinde bir proje yapabiliriz belki?",
-                timestamp: "2024-01-28T14:35:00Z",
-                type: "message"
-            },
-            {
-                id: 4,
-                user_id: 3,
-                user_name: "Mehmet Kaya",
-                content: "Mükemmel! Cuma akşamı uygun olan var mı?",
-                timestamp: "2024-01-28T14:40:00Z",
-                type: "message"
-            }
+            { id: 1, user_id: 1, user_name: "Ahmet Yılmaz", content: "Merhaba arkadaşlar! Bu hafta sonu için bir workshop düzenleyelim mi?", timestamp: new Date(Date.now() - 30 * 60000).toISOString() },
+            { id: 2, user_id: 2, user_name: "Ayşe Demir", content: "Harika fikir! Ben katılmak isterim.", timestamp: new Date(Date.now() - 25 * 60000).toISOString() }
         ];
     }
 
     generateSampleActivities() {
         return [
-            {
-                id: 1,
-                type: "event_created",
-                user_name: "Ahmet Yılmaz",
-                content: "Kodlama Workshop'u oluşturuldu",
-                timestamp: "2024-01-28T14:30:00Z",
-                icon: "fa-calendar-plus"
-            },
-            {
-                id: 2,
-                type: "member_joined",
-                user_name: "Zeynep Şahin",
-                content: "topluluğa katıldı",
-                timestamp: "2024-01-25T10:15:00Z",
-                icon: "fa-user-plus"
-            },
-            {
-                id: 3,
-                type: "discussion_started",
-                user_name: "Ayşe Demir",
-                content: "yeni bir konu başlattı: 'AI Etik Kuralları'",
-                timestamp: "2024-01-24T16:20:00Z",
-                icon: "fa-comments"
-            },
-            {
-                id: 4,
-                type: "resource_shared",
-                user_name: "Mehmet Kaya",
-                content: "yeni bir kaynak paylaştı: 'Web Geliştirme Rehberi'",
-                timestamp: "2024-01-23T11:45:00Z",
-                icon: "fa-share-alt"
-            }
+            { id: 1, type: "event_created", user_name: "Ahmet Yılmaz", content: "yeni bir etkinlik oluşturdu", timestamp: new Date(Date.now() - 30 * 60000).toISOString(), icon: "fa-calendar-plus" },
+            { id: 2, type: "member_joined", user_name: "Zeynep Şahin", content: "topluluğa katıldı", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60000).toISOString(), icon: "fa-user-plus" }
         ];
     }
 
     renderCommunityData() {
         if (!this.currentCommunity) return;
 
-        document.getElementById('communityName').textContent = this.currentCommunity.name;
-        document.getElementById('communityDescription').textContent = this.currentCommunity.description;
-        document.getElementById('memberCountText').textContent = `${this.currentCommunity.member_count} üye`;
-        document.getElementById('sidebarMemberCount').textContent = `${this.currentCommunity.member_count} üye`;
-        document.getElementById('compatibilityScore').innerHTML = `
-            <i class="fas fa-heart"></i>
-            %${Math.round(this.currentCommunity.compatibility_score * 100)} uyum
-        `;
-        document.getElementById('communityCategory').innerHTML = `
-            <i class="fas fa-tag"></i>
-            ${this.formatCategory(this.currentCommunity.category)}
-        `;
+        const elements = {
+            communityName: document.getElementById('communityName'),
+            communityDescription: document.getElementById('communityDescription'),
+            memberCountText: document.getElementById('memberCountText'),
+            sidebarMemberCount: document.getElementById('sidebarMemberCount'),
+            compatibilityScore: document.getElementById('compatibilityScore'),
+            communityCategory: document.getElementById('communityCategory'),
+            communityHeaderIcon: document.getElementById('communityHeaderIcon')
+        };
 
-        const iconElement = document.getElementById('communityHeaderIcon');
-        iconElement.className = `fas ${this.getCategoryIcon(this.currentCommunity.category)}`;
+        if (elements.communityName) elements.communityName.textContent = this.currentCommunity.name;
+        if (elements.communityDescription) elements.communityDescription.textContent = this.currentCommunity.description;
+        if (elements.memberCountText) elements.memberCountText.textContent = `${this.currentCommunity.member_count || 0} üye`;
+        if (elements.sidebarMemberCount) elements.sidebarMemberCount.textContent = `${this.currentCommunity.member_count || 0} üye`;
+        if (elements.compatibilityScore) {
+            elements.compatibilityScore.innerHTML = `<i class="fas fa-heart"></i> %${Math.round((this.currentCommunity.compatibility_score || 0.85) * 100)} uyum`;
+        }
+        if (elements.communityCategory) {
+            elements.communityCategory.innerHTML = `<i class="fas fa-tag"></i> ${this.formatCategory(this.currentCommunity.category)}`;
+        }
+        if (elements.communityHeaderIcon) {
+            elements.communityHeaderIcon.className = `fas ${this.getCategoryIcon(this.currentCommunity.category)}`;
+        }
 
         this.renderCommunitySidebar();
         this.renderCommunityStats();
@@ -217,6 +112,8 @@ class CommunityManager {
 
     renderCommunitySidebar() {
         const container = document.getElementById('communitySidebarInfo');
+        if (!container || !this.currentCommunity) return;
+
         container.innerHTML = `
             <div class="sidebar-community active">
                 <div class="community-dot"></div>
@@ -227,12 +124,11 @@ class CommunityManager {
 
     renderCommunityMembers() {
         const container = document.getElementById('membersList');
+        if (!container) return;
+
         container.innerHTML = this.communityMembers.map(member => `
             <div class="member-item ${member.is_online ? 'online' : 'offline'}">
-                <div class="member-avatar">
-                    ${member.name.charAt(0).toUpperCase()}
-                    <div class="status-indicator ${member.is_online ? 'online' : 'offline'}"></div>
-                </div>
+                <div class="member-avatar">${member.name.charAt(0).toUpperCase()}</div>
                 <div class="member-info">
                     <div class="member-name">
                         ${member.name}
@@ -246,17 +142,17 @@ class CommunityManager {
 
     renderChatMessages() {
         const container = document.getElementById('chatMessages');
-        container.innerHTML = this.chatMessages.map(message => `
+        if (!container) return;
+
+        container.innerHTML = this.chatMessages.map(msg => `
             <div class="chat-message">
-                <div class="message-avatar">
-                    ${message.user_name.charAt(0).toUpperCase()}
-                </div>
+                <div class="message-avatar">${msg.user_name.charAt(0).toUpperCase()}</div>
                 <div class="message-content">
                     <div class="message-header">
-                        <span class="message-sender">${message.user_name}</span>
-                        <span class="message-time">${this.formatTime(message.timestamp)}</span>
+                        <span class="message-sender">${msg.user_name}</span>
+                        <span class="message-time">${this.formatTime(msg.timestamp)}</span>
                     </div>
-                    <div class="message-text">${message.content}</div>
+                    <div class="message-text">${msg.content}</div>
                 </div>
             </div>
         `).join('');
@@ -266,15 +162,13 @@ class CommunityManager {
 
     renderActivities() {
         const container = document.getElementById('activitiesList');
+        if (!container) return;
+
         container.innerHTML = this.activities.map(activity => `
             <div class="activity-item">
-                <div class="activity-icon">
-                    <i class="fas ${activity.icon}"></i>
-                </div>
+                <div class="activity-icon"><i class="fas ${activity.icon}"></i></div>
                 <div class="activity-content">
-                    <div class="activity-text">
-                        <strong>${activity.user_name}</strong> ${activity.content}
-                    </div>
+                    <div class="activity-text"><strong>${activity.user_name}</strong> ${activity.content}</div>
                     <div class="activity-time">${this.formatTime(activity.timestamp)}</div>
                 </div>
             </div>
@@ -283,263 +177,194 @@ class CommunityManager {
 
     renderCommunityStats() {
         const container = document.getElementById('communityStats');
+        if (!container) return;
+
         const stats = this.calculateCommunityStats();
 
         container.innerHTML = `
-            <div class="stat-item">
-                <div class="stat-value">${stats.activeMembers}</div>
-                <div class="stat-label">Aktif Üye</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${stats.avgCompatibility}%</div>
-                <div class="stat-label">Ort. Uyum</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${stats.activitiesThisWeek}</div>
-                <div class="stat-label">Bu Hafta</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${stats.responseTime}h</div>
-                <div class="stat-label">Yanıt Süresi</div>
-            </div>
+            <div class="stat-item"><div class="stat-value">${stats.activeMembers}</div><div class="stat-label">Aktif Üye</div></div>
+            <div class="stat-item"><div class="stat-value">${stats.avgCompatibility}%</div><div class="stat-label">Ort. Uyum</div></div>
+            <div class="stat-item"><div class="stat-value">${stats.activitiesThisWeek}</div><div class="stat-label">Bu Hafta</div></div>
+            <div class="stat-item"><div class="stat-value">${stats.responseTime}h</div><div class="stat-label">Yanıt Süresi</div></div>
         `;
     }
 
     calculateCommunityStats() {
         const activeMembers = this.communityMembers.filter(m => m.is_online).length;
-        const avgCompatibility = Math.round(this.currentCommunity.compatibility_score * 100);
+        const avgCompatibility = Math.round((this.currentCommunity?.compatibility_score || 0.85) * 100);
         const activitiesThisWeek = this.activities.filter(a =>
             new Date(a.timestamp) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
         ).length;
 
-        return {
-            activeMembers,
-            avgCompatibility,
-            activitiesThisWeek,
-            responseTime: 2.5
-        };
+        return { activeMembers, avgCompatibility, activitiesThisWeek, responseTime: 2.5 };
     }
 
     setupEventListeners() {
-        document.getElementById('sendMessageBtn').addEventListener('click', () => {
-            this.sendMessage();
-        });
+        const sendBtn = document.getElementById('sendMessageBtn');
+        if (sendBtn) sendBtn.addEventListener('click', () => this.sendMessage());
 
-        document.getElementById('messageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.sendMessage();
-            }
-        });
+        const msgInput = document.getElementById('messageInput');
+        if (msgInput) {
+            msgInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.sendMessage();
+            });
+        }
 
-        document.getElementById('leaveCommunityBtn').addEventListener('click', () => {
-            this.leaveCommunity();
-        });
+        const leaveBtn = document.getElementById('leaveCommunityBtn');
+        if (leaveBtn) leaveBtn.addEventListener('click', () => this.leaveCommunity());
 
-        document.getElementById('clearChatBtn').addEventListener('click', () => {
-            this.clearChat();
-        });
+        const clearBtn = document.getElementById('clearChatBtn');
+        if (clearBtn) clearBtn.addEventListener('click', () => this.clearChat());
 
-        document.getElementById('gptAssistantBtn').addEventListener('click', () => {
-            this.openAssistantModal();
-        });
+        const gptBtn = document.getElementById('gptAssistantBtn');
+        if (gptBtn) gptBtn.addEventListener('click', () => this.openAssistantModal());
 
         document.querySelectorAll('.assistant-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const type = btn.dataset.type;
-                this.handleAssistantAction(type);
-            });
+            btn.addEventListener('click', () => this.handleAssistantAction(btn.dataset.type));
         });
     }
 
     sendMessage() {
         const input = document.getElementById('messageInput');
-        const message = input.value.trim();
+        if (!input) return;
 
+        const message = input.value.trim();
         if (!message) return;
 
-        const user = JSON.parse(localStorage.getItem('friendzone_user'));
+        const user = JSON.parse(localStorage.getItem('friendzone_user')) || { name: 'Misafir', id: 999 };
         const newMessage = {
             id: Date.now(),
             user_id: user.id,
             user_name: user.name,
             content: message,
-            timestamp: new Date().toISOString(),
-            type: 'message'
+            timestamp: new Date().toISOString()
         };
 
         this.chatMessages.push(newMessage);
         this.renderChatMessages();
-
         input.value = '';
 
-        setTimeout(() => {
-            this.simulateResponse(message);
-        }, 1000 + Math.random() * 2000);
+        setTimeout(() => this.simulateResponse(message), 1000 + Math.random() * 2000);
     }
 
     simulateResponse(originalMessage) {
-        const responses = [
-            "Harika fikir! Ben de katılıyorum.",
-            "Bunu daha önce hiç düşünmemiştim, ilginç.",
-            "Bu konuda biraz daha detay verebilir misin?",
-            "Evet kesinlikle! Hadi bunu birlikte geliştirelim.",
-            "Bu hafta sonu için plan yapabiliriz."
-        ];
-
+        const responses = ["Harika fikir!", "Kesinlikle katılıyorum.", "Bunu daha önce düşünmemiştim."];
         const randomUser = this.communityMembers[Math.floor(Math.random() * this.communityMembers.length)];
-        const response = {
+
+        this.chatMessages.push({
             id: Date.now(),
             user_id: randomUser.id,
             user_name: randomUser.name,
             content: responses[Math.floor(Math.random() * responses.length)],
-            timestamp: new Date().toISOString(),
-            type: 'message'
-        };
+            timestamp: new Date().toISOString()
+        });
 
-        this.chatMessages.push(response);
         this.renderChatMessages();
     }
 
     async leaveCommunity() {
-        if (!confirm('Bu topluluktan ayrılmak istediğinizden emin misiniz?')) {
-            return;
-        }
+        if (!confirm('Bu topluluktan ayrılmak istediğinizden emin misiniz?')) return;
 
         try {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
+            const token = localStorage.getItem('friendzone_token');
+
+            if (!user || !token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             const response = await fetch('/api/community/leave', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    user_id: user.id,
-                    community_id: this.currentCommunity.id
-                })
+                body: JSON.stringify({ user_id: user.id, community_id: this.currentCommunity.id })
             });
-
-            const result = await response.json();
 
             if (response.ok) {
                 this.showSuccess('Topluluktan ayrıldınız');
-                setTimeout(() => {
-                    window.location.href = 'communities.html';
-                }, 1500);
+                setTimeout(() => window.location.href = 'communities.html', 1500);
             } else {
-                throw new Error(result.message || 'Topluluktan ayrılamadı');
+                throw new Error('Topluluktan ayrılamadı');
             }
-
         } catch (error) {
-            console.error('Topluluktan ayrılma hatası:', error);
-            this.showError('Topluluktan ayrılırken bir hata oluştu: ' + error.message);
+            console.error('Ayrılma hatası:', error);
+            this.showError('Topluluktan ayrılırken bir hata oluştu');
         }
     }
 
     clearChat() {
-        if (!confirm('Tüm sohbet geçmişini temizlemek istediğinizden emin misiniz?')) {
-            return;
-        }
-
+        if (!confirm('Tüm sohbet geçmişini temizlemek istediğinizden emin misiniz?')) return;
         this.chatMessages = [];
         this.renderChatMessages();
         this.showSuccess('Sohbet geçmişi temizlendi');
     }
 
     openAssistantModal() {
-        document.getElementById('assistantModal').classList.add('show');
+        const modal = document.getElementById('assistantModal');
+        if (modal) modal.classList.add('show');
     }
 
     handleAssistantAction(type) {
-        if (!window.gptAssistant) {
+        if (window.gptAssistant) {
+            window.gptAssistant.getSuggestion(type);
+        } else {
             this.showError('AI asistanı henüz hazır değil');
-            return;
         }
-
-        const promptMap = {
-            topic: 'Bu topluluk için 3 ilgi çekici sohbet konusu öner',
-            icebreaker: 'Bu topluluk için 5 eğlenceli buz kırıcı soru üret',
-            activity: 'Bu topluluk için 3 uygulanabilir etkinlik öner'
-        };
-
-        window.gptAssistant.getSuggestion(type, promptMap[type]);
     }
 
     getCategoryIcon(category) {
-        const icons = {
-            'technology': 'laptop-code',
-            'sports': 'running',
-            'arts': 'palette',
-            'outdoor': 'mountain',
-            'education': 'graduation-cap',
-            'social': 'users'
-        };
-        return icons[category] || 'users';
+        const icons = { 'technology': 'fa-laptop-code', 'sports': 'fa-running', 'arts': 'fa-palette', 'outdoor': 'fa-mountain', 'education': 'fa-graduation-cap', 'social': 'fa-users' };
+        return icons[category] || 'fa-users';
     }
 
     formatCategory(category) {
-        const categories = {
-            'technology': 'Teknoloji',
-            'sports': 'Spor',
-            'arts': 'Sanat',
-            'outdoor': 'Açık Hava',
-            'education': 'Eğitim',
-            'social': 'Sosyal'
-        };
+        const categories = { 'technology': 'Teknoloji', 'sports': 'Spor', 'arts': 'Sanat', 'outdoor': 'Açık Hava', 'education': 'Eğitim', 'social': 'Sosyal' };
         return categories[category] || category;
     }
 
     formatTime(timestamp) {
         const date = new Date(timestamp);
         const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
+        const diffMins = Math.floor((now - date) / 60000);
 
         if (diffMins < 1) return 'şimdi';
         if (diffMins < 60) return `${diffMins} dk önce`;
-        if (diffHours < 24) return `${diffHours} sa önce`;
-        if (diffDays < 7) return `${diffDays} gün önce`;
-
-        return date.toLocaleDateString('tr-TR');
+        if (diffMins < 1440) return `${Math.floor(diffMins / 60)} sa önce`;
+        return `${Math.floor(diffMins / 1440)} gün önce`;
     }
 
     showFallbackCommunity() {
         this.currentCommunity = {
             id: 1,
             name: "Teknoloji Meraklıları",
-            description: "Yazılım, AI ve teknoloji trendleri hakkında konuşmak isteyen öğrenciler",
+            description: "Yazılım, AI ve teknoloji trendleri hakkında konuşan öğrenciler",
             category: "technology",
             member_count: 24,
-            compatibility_score: 0.92,
-            max_members: 30,
-            tags: ["programming", "ai", "innovation"]
+            compatibility_score: 0.92
         };
         this.renderCommunityData();
     }
 
     showSuccess(message) {
-        if (window.app && window.app.showNotification) {
-            window.app.showNotification(message, 'success');
-        } else {
-            alert(message);
-        }
+        if (window.app?.showNotification) window.app.showNotification(message, 'success');
+        else alert(message);
     }
 
     showError(message) {
-        if (window.app && window.app.showNotification) {
-            window.app.showNotification(message, 'error');
-        } else {
-            alert('Hata: ' + message);
-        }
+        if (window.app?.showNotification) window.app.showNotification(message, 'error');
+        else alert('Hata: ' + message);
     }
 
     loadUserData() {
         const user = JSON.parse(localStorage.getItem('friendzone_user'));
         if (user) {
-            document.getElementById('userName').textContent = user.name;
-            document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            if (userName) userName.textContent = user.name || 'Kullanıcı';
+            if (userAvatar) userAvatar.textContent = (user.name || 'K').charAt(0).toUpperCase();
         }
     }
 }

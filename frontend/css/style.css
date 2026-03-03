@@ -810,3 +810,12 @@ body {
 .mt-4 { margin-top: 1rem; }
 .mb-4 { margin-bottom: 1rem; }
 .p-4 { padding: 1rem; }
+
+#logout-btn {
+    color: var(--accent-danger);
+}
+
+#logout-btn:hover {
+    background: rgba(242, 63, 67, 0.1);
+    color: var(--accent-danger);
+}

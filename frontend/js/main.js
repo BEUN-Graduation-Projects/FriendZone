@@ -1,4 +1,5 @@
-// Ana JavaScript Dosyası
+// frontend/js/main.js
+
 class FriendZoneApp {
     constructor() {
         this.init();
@@ -8,10 +9,10 @@ class FriendZoneApp {
         this.setupEventListeners();
         this.setupAnimations();
         this.checkAuthStatus();
+        this.setupLogoutButton();
     }
 
     setupEventListeners() {
-        // Sidebar toggle
         const sidebarToggle = document.querySelector('.sidebar-toggle');
         const sidebar = document.querySelector('.sidebar');
 
@@ -21,7 +22,6 @@ class FriendZoneApp {
             });
         }
 
-        // Nav item active state
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
@@ -32,27 +32,19 @@ class FriendZoneApp {
             });
         });
 
-        // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    target.scrollIntoView({ behavior: 'smooth' });
                 }
             });
         });
     }
 
     setupAnimations() {
-        // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -62,7 +54,6 @@ class FriendZoneApp {
             });
         }, observerOptions);
 
-        // Observe elements for animation
         document.querySelectorAll('.feature-card, .step').forEach(el => {
             observer.observe(el);
         });
@@ -70,77 +61,80 @@ class FriendZoneApp {
 
     checkAuthStatus() {
         const token = localStorage.getItem('friendzone_token');
-        const userProfile = document.querySelector('.user-profile');
+        const user = JSON.parse(localStorage.getItem('friendzone_user'));
 
-        if (token && userProfile) {
-            // Kullanıcı giriş yapmış
-            this.updateUserProfile();
+        if (token && user) {
+            this.updateNavigationForLoggedInUser(user);
+            this.updateUIWithUserData(user);
         }
     }
 
-    async updateUserProfile() {
-        try {
-            const token = localStorage.getItem('friendzone_token');
-            const response = await fetch('/api/auth/profile', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const user = data.data.user;
-
-                this.updateUIWithUserData(user);
+    setupLogoutButton() {
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#logout-btn')) {
+                e.preventDefault();
+                this.logout();
             }
-        } catch (error) {
-            console.error('Profil bilgileri yüklenemedi:', error);
+        });
+    }
+
+    updateNavigationForLoggedInUser(user) {
+        const navSections = document.querySelectorAll('.nav-section');
+        navSections.forEach(section => {
+            const profileNav = section.querySelector('a[href="profile.html"]');
+            if (profileNav) return;
+        });
+
+        const userProfile = document.querySelector('.user-profile');
+        if (userProfile) {
+            userProfile.style.cursor = 'pointer';
+            userProfile.addEventListener('click', () => {
+                window.location.href = 'profile.html';
+            });
         }
     }
 
     updateUIWithUserData(user) {
-        // Avatar güncelle
         const avatar = document.querySelector('.avatar');
         if (avatar && user.name) {
-            const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
-            avatar.textContent = initials;
+            if (avatar.querySelector('img')) {
+                avatar.querySelector('img').alt = user.name;
+            } else {
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                avatar.innerHTML = `<span>${initials}</span>`;
+            }
         }
 
-        // Kullanıcı bilgilerini güncelle
         const username = document.querySelector('.username');
+        if (username) username.textContent = user.name || 'Kullanıcı';
+
         const status = document.querySelector('.status');
+        if (status) status.textContent = 'Çevrimiçi';
 
-        if (username) username.textContent = user.name;
-        if (status) status.textContent = `@${user.email.split('@')[0]}`;
+        const logoutItems = document.querySelectorAll('.nav-item');
+        let hasLogout = false;
+        logoutItems.forEach(item => {
+            if (item.querySelector('span')?.textContent === 'Çıkış Yap') {
+                hasLogout = true;
+            }
+        });
 
-        // Nav items güncelle
-        this.updateNavigationForLoggedInUser();
-    }
+        if (!hasLogout) {
+            const profileSection = Array.from(document.querySelectorAll('.nav-section')).find(
+                section => section.querySelector('h3')?.textContent === 'PROFİL'
+            );
 
-    updateNavigationForLoggedInUser() {
-        const navSection = document.querySelector('.nav-section:nth-child(2)');
-        if (navSection) {
-            navSection.innerHTML = `
-                <h3>PROFİL</h3>
-                <a href="profile.html" class="nav-item">
-                    <i class="fas fa-user"></i>
-                    <span>Profilim</span>
-                </a>
-                <a href="communities.html" class="nav-item">
-                    <i class="fas fa-users"></i>
-                    <span>Topluluklarım</span>
-                </a>
-                <a href="#" class="nav-item" id="logout-btn">
+            if (profileSection) {
+                const logoutLink = document.createElement('a');
+                logoutLink.href = '#';
+                logoutLink.className = 'nav-item';
+                logoutLink.id = 'logout-btn';
+                logoutLink.innerHTML = `
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Çıkış Yap</span>
-                </a>
-            `;
-
-            // Logout event listener ekle
-            document.getElementById('logout-btn').addEventListener('click', (e) => {
-                e.preventDefault();
-                this.logout();
-            });
+                `;
+                profileSection.appendChild(logoutLink);
+            }
         }
     }
 
@@ -150,7 +144,6 @@ class FriendZoneApp {
         window.location.href = 'index.html';
     }
 
-    // Utility functions
     showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
@@ -159,23 +152,18 @@ class FriendZoneApp {
                 <i class="fas fa-${this.getNotificationIcon(type)}"></i>
                 <span>${message}</span>
             </div>
-            <button class="notification-close">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="notification-close"><i class="fas fa-times"></i></button>
         `;
 
         document.body.appendChild(notification);
 
-        // Animasyon için
         setTimeout(() => notification.classList.add('show'), 100);
 
-        // Kapatma butonu
         notification.querySelector('.notification-close').addEventListener('click', () => {
             notification.classList.remove('show');
             setTimeout(() => notification.remove(), 300);
         });
 
-        // Otomatik kapanma
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.classList.remove('show');
@@ -194,7 +182,6 @@ class FriendZoneApp {
         return icons[type] || 'info-circle';
     }
 
-    // API helper
     async apiCall(endpoint, options = {}) {
         const token = localStorage.getItem('friendzone_token');
         const defaultOptions = {
@@ -220,12 +207,12 @@ class FriendZoneApp {
     }
 }
 
-// Uygulamayı başlat
+// Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FriendZoneApp();
 });
 
-// CSS Animasyonları için global styles
+// Global styles for notifications
 const style = document.createElement('style');
 style.textContent = `
     .notification {
@@ -249,21 +236,10 @@ style.textContent = `
         opacity: 1;
     }
 
-    .notification-success {
-        border-left: 4px solid var(--accent-success);
-    }
-
-    .notification-error {
-        border-left: 4px solid var(--accent-danger);
-    }
-
-    .notification-warning {
-        border-left: 4px solid var(--accent-warning);
-    }
-
-    .notification-info {
-        border-left: 4px solid var(--accent-primary);
-    }
+    .notification-success { border-left: 4px solid var(--accent-success); }
+    .notification-error { border-left: 4px solid var(--accent-danger); }
+    .notification-warning { border-left: 4px solid var(--accent-warning); }
+    .notification-info { border-left: 4px solid var(--accent-primary); }
 
     .notification-content {
         display: flex;
@@ -289,22 +265,7 @@ style.textContent = `
         color: var(--text-primary);
     }
 
-    /* Scroll animations */
-    .feature-card, .step {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.6s ease;
-    }
-
-    .feature-card.animate-in, .step.animate-in {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .sidebar.collapsed {
-        width: 72px;
-    }
-
+    .sidebar.collapsed { width: 72px; }
     .sidebar.collapsed .logo span,
     .sidebar.collapsed .user-info,
     .sidebar.collapsed .nav-item span,
@@ -312,10 +273,6 @@ style.textContent = `
     .sidebar.collapsed .connection-status span {
         display: none;
     }
-
-    .sidebar.collapsed .nav-item {
-        justify-content: center;
-        padding: 12px;
-    }
+    .sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
 `;
 document.head.appendChild(style);

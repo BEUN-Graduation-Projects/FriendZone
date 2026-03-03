@@ -1,3 +1,5 @@
+// frontend/js/auth.js
+
 class AuthManager {
     constructor() {
         this.init();
@@ -50,10 +52,10 @@ class AuthManager {
         const formData = new FormData(e.target);
         const data = {
             email: formData.get('email'),
-            password: formData.get('password')
+            password: formData.get('password'),
+            remember: formData.get('remember') === 'on'
         };
 
-        // Validation
         if (!this.validateLoginData(data)) {
             return;
         }
@@ -62,15 +64,26 @@ class AuthManager {
         this.setLoadingState(submitBtn, true);
 
         try {
-            // Demo giriş simülasyonu
-            await this.simulateLogin(data.email, data.password);
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-            this.showSuccess('Başarıyla giriş yapıldı! Yönlendiriliyorsunuz...');
+            const result = await response.json();
 
-            setTimeout(() => {
-                window.location.href = 'communities.html';
-            }, 1500);
+            if (response.ok && result.success) {
+                localStorage.setItem('friendzone_token', result.data.token);
+                localStorage.setItem('friendzone_user', JSON.stringify(result.data.user));
 
+                this.showSuccess('Başarıyla giriş yapıldı! Yönlendiriliyorsunuz...');
+
+                setTimeout(() => {
+                    window.location.href = 'communities.html';
+                }, 1500);
+            } else {
+                throw new Error(result.message || 'Giriş başarısız');
+            }
         } catch (error) {
             this.showError(error.message);
         } finally {
@@ -91,7 +104,6 @@ class AuthManager {
             year: parseInt(formData.get('year'))
         };
 
-        // Validation
         if (!this.validateSignupData(data)) {
             return;
         }
@@ -100,15 +112,26 @@ class AuthManager {
         this.setLoadingState(submitBtn, true);
 
         try {
-            // Demo kayıt simülasyonu
-            await this.simulateSignup(data);
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-            this.showSuccess('Hesabınız başarıyla oluşturuldu! Yönlendiriliyorsunuz...');
+            const result = await response.json();
 
-            setTimeout(() => {
-                window.location.href = 'personality_test.html';
-            }, 1500);
+            if (response.ok && result.success) {
+                localStorage.setItem('friendzone_token', result.data.token);
+                localStorage.setItem('friendzone_user', JSON.stringify(result.data.user));
 
+                this.showSuccess('Hesabınız başarıyla oluşturuldu! Yönlendiriliyorsunuz...');
+
+                setTimeout(() => {
+                    window.location.href = 'personality_test.html';
+                }, 1500);
+            } else {
+                throw new Error(result.message || 'Kayıt başarısız');
+            }
         } catch (error) {
             this.showError(error.message);
         } finally {
@@ -116,53 +139,9 @@ class AuthManager {
         }
     }
 
-    async simulateLogin(email, password) {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Demo amaçlı basit kontrol
-                if (email && password.length >= 6) {
-                    // Demo kullanıcı oluştur
-                    const user = {
-                        name: email.split('@')[0],
-                        email: email,
-                        is_test_completed: true
-                    };
-
-                    localStorage.setItem('friendzone_token', 'demo_token_' + Date.now());
-                    localStorage.setItem('friendzone_user', JSON.stringify(user));
-
-                    resolve({ success: true, user });
-                } else {
-                    reject(new Error('E-posta veya şifre hatalı.'));
-                }
-            }, 1500);
-        });
-    }
-
-    async simulateSignup(data) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const user = {
-                    name: data.name,
-                    email: data.email,
-                    university: data.university,
-                    department: data.department,
-                    year: data.year,
-                    is_test_completed: false
-                };
-
-                localStorage.setItem('friendzone_token', 'demo_token_' + Date.now());
-                localStorage.setItem('friendzone_user', JSON.stringify(user));
-
-                resolve({ success: true });
-            }, 1500);
-        });
-    }
-
     validateLoginData(data) {
         let isValid = true;
 
-        // Email validation
         if (!data.email || !this.isValidEmail(data.email)) {
             this.showFieldError('email', 'Geçerli bir e-posta adresi girin');
             isValid = false;
@@ -170,7 +149,6 @@ class AuthManager {
             this.clearFieldError('email');
         }
 
-        // Password validation
         if (!data.password || data.password.length < 6) {
             this.showFieldError('password', 'Şifre en az 6 karakter olmalıdır');
             isValid = false;
@@ -184,7 +162,6 @@ class AuthManager {
     validateSignupData(data) {
         let isValid = true;
 
-        // Name validation
         if (!data.name || data.name.length < 2) {
             this.showFieldError('name', 'İsim en az 2 karakter olmalıdır');
             isValid = false;
@@ -192,15 +169,13 @@ class AuthManager {
             this.clearFieldError('name');
         }
 
-        // Email validation
         if (!data.email || !this.isValidEmail(data.email)) {
-            this.showFieldError('email', 'Geçerli bir üniversite e-posta adresi girin');
+            this.showFieldError('email', 'Geçerli bir e-posta adresi girin');
             isValid = false;
         } else {
             this.clearFieldError('email');
         }
 
-        // Password validation
         if (!data.password || data.password.length < 6) {
             this.showFieldError('password', 'Şifre en az 6 karakter olmalıdır');
             isValid = false;
@@ -208,7 +183,6 @@ class AuthManager {
             this.clearFieldError('password');
         }
 
-        // University validation
         if (!data.university) {
             this.showFieldError('university', 'Üniversite seçiniz');
             isValid = false;
@@ -278,9 +252,7 @@ class AuthManager {
 
         form.insertBefore(errorDiv, form.firstChild);
 
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 5000);
+        setTimeout(() => errorDiv.remove(), 5000);
     }
 
     showSuccess(message) {
@@ -295,38 +267,27 @@ class AuthManager {
     }
 
     removeMessages() {
-        const existingMessages = document.querySelectorAll('.error-message, .success-message');
-        existingMessages.forEach(msg => msg.remove());
+        document.querySelectorAll('.error-message, .success-message').forEach(msg => msg.remove());
     }
 
     checkExistingAuth() {
         const token = localStorage.getItem('friendzone_token');
-        if (token && (window.location.pathname.includes('login.html') ||
-                      window.location.pathname.includes('signup.html'))) {
-            this.checkTestStatusAndRedirect();
-        }
-    }
+        const user = JSON.parse(localStorage.getItem('friendzone_user'));
 
-    async checkTestStatusAndRedirect() {
-        try {
-            const userStr = localStorage.getItem('friendzone_user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
+        if (token && user) {
+            const currentPage = window.location.pathname.split('/').pop();
+
+            if (currentPage === 'login.html' || currentPage === 'signup.html') {
                 if (user.is_test_completed) {
                     window.location.href = 'communities.html';
                 } else {
                     window.location.href = 'personality_test.html';
                 }
             }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-            localStorage.removeItem('friendzone_token');
-            localStorage.removeItem('friendzone_user');
         }
     }
 
     setupRealTimeValidation() {
-        // Email validation
         const emailInput = document.getElementById('email');
         if (emailInput) {
             emailInput.addEventListener('blur', () => {
@@ -338,6 +299,33 @@ class AuthManager {
                 }
             });
         }
+
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => {
+                this.updatePasswordStrength(passwordInput.value);
+            });
+        }
+    }
+
+    updatePasswordStrength(password) {
+        const strengthBar = document.querySelector('.strength-fill');
+        const strengthText = document.querySelector('.strength-text');
+        const strengthContainer = document.querySelector('.password-strength');
+
+        if (!strengthBar || !strengthText || !strengthContainer) return;
+
+        let strength = 0;
+        if (password.length >= 6) strength++;
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        strengthContainer.setAttribute('data-strength', strength);
+
+        const strengthLabels = ['', 'Çok Zayıf', 'Zayıf', 'Orta', 'İyi', 'Güçlü'];
+        strengthText.textContent = `Şifre gücü: ${strengthLabels[strength]}`;
     }
 }
 

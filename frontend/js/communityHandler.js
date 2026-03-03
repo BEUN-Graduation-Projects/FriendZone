@@ -1,3 +1,5 @@
+// frontend/js/communityHandler.js
+
 class CommunityHandler {
     constructor() {
         this.userCommunities = [];
@@ -19,10 +21,12 @@ class CommunityHandler {
     async loadUserCommunities() {
         try {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
+            const token = localStorage.getItem('friendzone_token');
+
+            if (!user || !token) return;
+
             const response = await fetch(`/api/community/user/${user.id}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();
@@ -38,13 +42,16 @@ class CommunityHandler {
 
     async loadRecommendedCommunities() {
         const loadingElement = document.getElementById('recommendationsLoading');
+        if (!loadingElement) return;
 
         try {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
+            const token = localStorage.getItem('friendzone_token');
+
+            if (!user || !token) return;
+
             const response = await fetch(`/api/community/recommendations/${user.id}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();
@@ -58,41 +65,42 @@ class CommunityHandler {
         } catch (error) {
             console.error('Önerilen topluluklar yüklenemedi:', error);
             loadingElement.style.display = 'none';
-            this.showRecommendationsError();
         }
     }
 
     async loadAllCommunities() {
         const loadingElement = document.getElementById('communitiesLoading');
         const emptyElement = document.getElementById('communitiesEmpty');
+        if (!loadingElement) return;
 
         try {
-            // This would normally come from an API
-            // For now, we'll generate sample data
             this.allCommunities = this.generateSampleCommunities();
             this.renderAllCommunities();
 
             loadingElement.style.display = 'none';
 
-            if (this.allCommunities.length === 0) {
+            if (this.allCommunities.length === 0 && emptyElement) {
                 emptyElement.style.display = 'block';
             }
         } catch (error) {
             console.error('Topluluklar yüklenemedi:', error);
             loadingElement.style.display = 'none';
-            emptyElement.style.display = 'block';
+            if (emptyElement) emptyElement.style.display = 'block';
         }
     }
 
     async loadSimilarUsers() {
         const loadingElement = document.getElementById('similarUsersLoading');
+        if (!loadingElement) return;
 
         try {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
+            const token = localStorage.getItem('friendzone_token');
+
+            if (!user || !token) return;
+
             const response = await fetch(`/api/community/similar-users/${user.id}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             const data = await response.json();
@@ -117,8 +125,8 @@ class CommunityHandler {
                 description: "Yazılım, AI ve teknoloji trendleri hakkında konuşmak isteyen öğrenciler",
                 category: "technology",
                 member_count: 24,
-                compatibility_score: 0.92,
                 max_members: 30,
+                compatibility_score: 0.92,
                 tags: ["programming", "ai", "innovation"],
                 is_member: false
             },
@@ -128,10 +136,10 @@ class CommunityHandler {
                 description: "Fitness, spor aktiviteleri ve sağlıklı yaşam üzerine paylaşımlar",
                 category: "sports",
                 member_count: 18,
-                compatibility_score: 0.85,
                 max_members: 25,
+                compatibility_score: 0.85,
                 tags: ["fitness", "health", "sports"],
-                is_member: true
+                is_member: false
             },
             {
                 id: 3,
@@ -139,20 +147,9 @@ class CommunityHandler {
                 description: "Resim, müzik, tiyatro ve diğer sanat formlarını sevenler",
                 category: "arts",
                 member_count: 15,
+                max_members: 20,
                 compatibility_score: 0.78,
-                max_members: 20,
                 tags: ["art", "music", "culture"],
-                is_member: false
-            },
-            {
-                id: 4,
-                name: "Doğa Kaşifleri",
-                description: "Doğa yürüyüşü, kamp ve açık hava aktiviteleri sevenler",
-                category: "outdoor",
-                member_count: 12,
-                compatibility_score: 0.88,
-                max_members: 20,
-                tags: ["nature", "hiking", "camping"],
                 is_member: false
             }
         ];
@@ -160,6 +157,7 @@ class CommunityHandler {
 
     renderUserCommunities() {
         const container = document.getElementById('userCommunitiesList');
+        if (!container) return;
 
         if (this.userCommunities.length === 0) {
             container.innerHTML = `
@@ -172,8 +170,7 @@ class CommunityHandler {
         }
 
         container.innerHTML = this.userCommunities.map(community => `
-            <div class="sidebar-community ${community.id === 1 ? 'active' : ''}" 
-                 data-community-id="${community.id}">
+            <div class="sidebar-community" data-community-id="${community.id}">
                 <div class="community-dot"></div>
                 <span>${community.name}</span>
             </div>
@@ -182,13 +179,12 @@ class CommunityHandler {
 
     renderRecommendedCommunities() {
         const container = document.getElementById('recommendationsGrid');
+        if (!container) return;
 
         if (this.recommendedCommunities.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
+                    <div class="empty-icon"><i class="fas fa-users"></i></div>
                     <h3>Henüz öneri yok</h3>
                     <p>Testleri tamamladıktan sonra öneriler burada görünecek</p>
                 </div>
@@ -199,16 +195,13 @@ class CommunityHandler {
         container.innerHTML = this.recommendedCommunities.map(community => `
             <div class="community-card recommended" data-community-id="${community.id}">
                 <div class="community-header">
-                    <div class="community-icon">
-                        <i class="fas ${this.getCategoryIcon(community.category)}"></i>
-                    </div>
+                    <div class="community-icon"><i class="fas ${this.getCategoryIcon(community.category)}"></i></div>
                     <div class="community-info">
                         <div class="community-name">${community.name}</div>
                         <div class="community-category">${this.formatCategory(community.category)}</div>
                         <div class="community-description">${community.description}</div>
                     </div>
                 </div>
-                
                 <div class="community-stats">
                     <div class="stat">
                         <div class="stat-number">${community.member_count}</div>
@@ -219,12 +212,9 @@ class CommunityHandler {
                         <div class="score-label">Uyum</div>
                     </div>
                 </div>
-                
                 <div class="community-actions">
-                    <button class="btn btn-primary btn-join ${community.is_member ? 'btn-joined' : ''}" 
-                            data-community-id="${community.id}">
-                        <i class="fas ${community.is_member ? 'fa-check' : 'fa-plus'}"></i>
-                        ${community.is_member ? 'Katıldın' : 'Topluluğa Katıl'}
+                    <button class="btn btn-primary btn-join" data-community-id="${community.id}">
+                        <i class="fas fa-plus"></i> Topluluğa Katıl
                     </button>
                 </div>
             </div>
@@ -233,20 +223,18 @@ class CommunityHandler {
 
     renderAllCommunities() {
         const container = document.getElementById('communitiesGrid');
+        if (!container) return;
 
         container.innerHTML = this.allCommunities.map(community => `
             <div class="community-card" data-community-id="${community.id}">
                 <div class="community-header">
-                    <div class="community-icon">
-                        <i class="fas ${this.getCategoryIcon(community.category)}"></i>
-                    </div>
+                    <div class="community-icon"><i class="fas ${this.getCategoryIcon(community.category)}"></i></div>
                     <div class="community-info">
                         <div class="community-name">${community.name}</div>
                         <div class="community-category">${this.formatCategory(community.category)}</div>
                         <div class="community-description">${community.description}</div>
                     </div>
                 </div>
-                
                 <div class="community-stats">
                     <div class="stat">
                         <div class="stat-number">${community.member_count}/${community.max_members}</div>
@@ -257,112 +245,83 @@ class CommunityHandler {
                         <div class="score-label">Uyum</div>
                     </div>
                 </div>
-                
                 <div class="community-actions">
-                    <button class="btn btn-primary btn-join ${community.is_member ? 'btn-joined' : ''}" 
-                            data-community-id="${community.id}">
-                        <i class="fas ${community.is_member ? 'fa-check' : 'fa-plus'}"></i>
-                        ${community.is_member ? 'Katıldın' : 'Topluluğa Katıl'}
+                    <button class="btn btn-primary btn-join" data-community-id="${community.id}">
+                        <i class="fas fa-plus"></i> Topluluğa Katıl
                     </button>
                 </div>
             </div>
         `).join('');
     }
 
-    renderSimilarUsers() {
+    renderSimilarUsers(users) {
         const container = document.getElementById('similarUsersGrid');
+        if (!container) return;
 
-        if (this.similarUsers.length === 0) {
+        const usersToRender = users || this.similarUsers;
+
+        if (usersToRender.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-user-friends"></i>
-                    </div>
+                    <div class="empty-icon"><i class="fas fa-user-friends"></i></div>
                     <h3>Henüz benzer kullanıcı bulunamadı</h3>
-                    <p>Daha fazla öğrenci katıldıkça benzerlikler görünecek</p>
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = this.similarUsers.map(user => `
+        container.innerHTML = usersToRender.slice(0, 4).map(user => `
             <div class="user-card">
-                <div class="user-avatar">${user.user.name.charAt(0).toUpperCase()}</div>
-                <div class="user-name">${user.user.name}</div>
-                <div class="user-university">${user.user.university}</div>
+                <div class="user-avatar">${(user.user?.name || '?').charAt(0).toUpperCase()}</div>
+                <div class="user-name">${user.user?.name || 'İsimsiz'}</div>
                 <div class="similarity-score">%${Math.round(user.similarity_score * 100)} Uyum</div>
-                
-                <div class="user-hobbies">
-                    ${user.user.hobbies.slice(0, 3).map(hobby => `
-                        <span class="hobby-tag">${hobby}</span>
-                    `).join('')}
-                    ${user.user.hobbies.length > 3 ? `<span class="hobby-tag">+${user.user.hobbies.length - 3}</span>` : ''}
-                </div>
-                
                 <div class="user-actions">
-                    <button class="btn btn-secondary btn-small">
-                        <i class="fas fa-user-plus"></i>
-                        Takip Et
-                    </button>
-                    <button class="btn btn-primary btn-small">
-                        <i class="fas fa-comment"></i>
-                        Mesaj
-                    </button>
+                    <button class="btn btn-secondary btn-small"><i class="fas fa-user-plus"></i></button>
+                    <button class="btn btn-primary btn-small"><i class="fas fa-comment"></i></button>
                 </div>
             </div>
         `).join('');
     }
 
     getCategoryIcon(category) {
-        const icons = {
-            'technology': 'laptop-code',
-            'sports': 'running',
-            'arts': 'palette',
-            'outdoor': 'mountain',
-            'education': 'graduation-cap',
-            'social': 'users'
-        };
-        return icons[category] || 'users';
+        const icons = { 'technology': 'fa-laptop-code', 'sports': 'fa-running', 'arts': 'fa-palette', 'outdoor': 'fa-mountain', 'education': 'fa-graduation-cap', 'social': 'fa-users' };
+        return icons[category] || 'fa-users';
     }
 
     formatCategory(category) {
-        const categories = {
-            'technology': 'Teknoloji',
-            'sports': 'Spor',
-            'arts': 'Sanat',
-            'outdoor': 'Açık Hava',
-            'education': 'Eğitim',
-            'social': 'Sosyal'
-        };
+        const categories = { 'technology': 'Teknoloji', 'sports': 'Spor', 'arts': 'Sanat', 'outdoor': 'Açık Hava', 'education': 'Eğitim', 'social': 'Sosyal' };
         return categories[category] || category;
     }
 
     setupEventListeners() {
-        // Create community modal
-        document.getElementById('createCommunityBtn').addEventListener('click', () => {
-            this.showCreateCommunityModal();
-        });
+        const createCommunityBtn = document.getElementById('createCommunityBtn');
+        if (createCommunityBtn) {
+            createCommunityBtn.addEventListener('click', () => this.showCreateCommunityModal());
+        }
 
-        document.getElementById('createFirstCommunityBtn').addEventListener('click', () => {
-            this.showCreateCommunityModal();
-        });
+        const createFirstCommunityBtn = document.getElementById('createFirstCommunityBtn');
+        if (createFirstCommunityBtn) {
+            createFirstCommunityBtn.addEventListener('click', () => this.showCreateCommunityModal());
+        }
 
-        // Modal close
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
-            this.hideCreateCommunityModal();
-        });
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => this.hideCreateCommunityModal());
+        }
 
-        document.getElementById('cancelCreateBtn').addEventListener('click', () => {
-            this.hideCreateCommunityModal();
-        });
+        const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+        if (cancelCreateBtn) {
+            cancelCreateBtn.addEventListener('click', () => this.hideCreateCommunityModal());
+        }
 
-        // Create community form
-        document.getElementById('createCommunityForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleCreateCommunity();
-        });
+        const createCommunityForm = document.getElementById('createCommunityForm');
+        if (createCommunityForm) {
+            createCommunityForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleCreateCommunity();
+            });
+        }
 
-        // Join community buttons
         document.addEventListener('click', (e) => {
             if (e.target.closest('.btn-join')) {
                 const button = e.target.closest('.btn-join');
@@ -370,26 +329,31 @@ class CommunityHandler {
             }
         });
 
-        // Search and filter
-        document.getElementById('communitySearch').addEventListener('input', (e) => {
-            this.handleSearch(e.target.value);
-        });
+        const searchInput = document.getElementById('communitySearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+        }
 
-        document.getElementById('categoryFilter').addEventListener('change', (e) => {
-            this.handleFilter(e.target.value);
-        });
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', (e) => this.handleFilter(e.target.value));
+        }
     }
 
     showCreateCommunityModal() {
-        document.getElementById('createCommunityModal').classList.add('show');
+        const modal = document.getElementById('createCommunityModal');
+        if (modal) modal.classList.add('show');
     }
 
     hideCreateCommunityModal() {
-        document.getElementById('createCommunityModal').classList.remove('show');
+        const modal = document.getElementById('createCommunityModal');
+        if (modal) modal.classList.remove('show');
     }
 
     async handleCreateCommunity() {
         const form = document.getElementById('createCommunityForm');
+        if (!form) return;
+
         const formData = new FormData(form);
         const data = {
             name: formData.get('name'),
@@ -404,19 +368,21 @@ class CommunityHandler {
 
         try {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
+            const token = localStorage.getItem('friendzone_token');
+
+            if (!user || !token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             const response = await fetch('/api/community/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    ...data,
-                    created_by: user.id
-                })
+                body: JSON.stringify({ ...data, created_by: user.id })
             });
-
-            const result = await response.json();
 
             if (response.ok) {
                 this.hideCreateCommunityModal();
@@ -425,54 +391,48 @@ class CommunityHandler {
                 this.loadUserCommunities();
                 this.loadAllCommunities();
             } else {
-                throw new Error(result.message || 'Topluluk oluşturulamadı');
+                throw new Error('Topluluk oluşturulamadı');
             }
-
         } catch (error) {
             console.error('Topluluk oluşturma hatası:', error);
-            this.showError('Topluluk oluşturulurken bir hata oluştu: ' + error.message);
+            this.showError('Topluluk oluşturulurken bir hata oluştu');
         } finally {
             this.setLoadingState(submitBtn, false);
         }
     }
 
     async handleJoinCommunity(communityId, button) {
-        if (button.classList.contains('btn-joined')) {
-            // Already joined, show community page
-            window.location.href = `community.html?id=${communityId}`;
-            return;
-        }
-
         this.setLoadingState(button, true);
 
         try {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
+            const token = localStorage.getItem('friendzone_token');
+
+            if (!user || !token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             const response = await fetch('/api/community/join', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    user_id: user.id,
-                    community_id: communityId
-                })
+                body: JSON.stringify({ user_id: user.id, community_id: parseInt(communityId) })
             });
 
-            const result = await response.json();
-
             if (response.ok) {
-                button.classList.add('btn-joined');
                 button.innerHTML = '<i class="fas fa-check"></i> Katıldın';
+                button.classList.add('btn-joined');
                 this.showSuccess('Topluluğa başarıyla katıldın!');
                 this.loadUserCommunities();
             } else {
-                throw new Error(result.message || 'Topluluğa katılamadı');
+                throw new Error('Topluluğa katılamadı');
             }
-
         } catch (error) {
             console.error('Topluluğa katılma hatası:', error);
-            this.showError('Topluluğa katılırken bir hata oluştu: ' + error.message);
+            this.showError('Topluluğa katılırken bir hata oluştu');
         } finally {
             this.setLoadingState(button, false);
         }
@@ -481,25 +441,20 @@ class CommunityHandler {
     handleSearch(query) {
         const communities = document.querySelectorAll('.community-card');
         communities.forEach(card => {
-            const name = card.querySelector('.community-name').textContent.toLowerCase();
-            const description = card.querySelector('.community-description').textContent.toLowerCase();
+            const name = card.querySelector('.community-name')?.textContent.toLowerCase() || '';
+            const description = card.querySelector('.community-description')?.textContent.toLowerCase() || '';
             const searchTerm = query.toLowerCase();
 
-            if (name.includes(searchTerm) || description.includes(searchTerm)) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
+            card.style.display = (name.includes(searchTerm) || description.includes(searchTerm)) ? 'block' : 'none';
         });
     }
 
     handleFilter(category) {
         const communities = document.querySelectorAll('.community-card');
         communities.forEach(card => {
-            const communityCategory = card.querySelector('.community-category').textContent.toLowerCase();
-            const categoryTerm = this.formatCategory(category).toLowerCase();
+            const communityCategory = card.querySelector('.community-category')?.textContent.toLowerCase() || '';
 
-            if (!category || communityCategory === categoryTerm) {
+            if (!category || communityCategory === this.formatCategory(category).toLowerCase()) {
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
@@ -536,22 +491,14 @@ class CommunityHandler {
     loadUserData() {
         const user = JSON.parse(localStorage.getItem('friendzone_user'));
         if (user) {
-            document.getElementById('userName').textContent = user.name;
-            document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
-        }
-    }
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const userStatus = document.getElementById('userStatus');
 
-    showRecommendationsError() {
-        const container = document.getElementById('recommendationsGrid');
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <h3>Öneriler yüklenemedi</h3>
-                <p>Lütfen daha sonra tekrar deneyin</p>
-            </div>
-        `;
+            if (userName) userName.textContent = user.name || 'Kullanıcı';
+            if (userAvatar) userAvatar.textContent = (user.name || 'K').charAt(0).toUpperCase();
+            if (userStatus) userStatus.textContent = 'Çevrimiçi';
+        }
     }
 }
 

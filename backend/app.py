@@ -1,4 +1,5 @@
 # backend/app.py
+
 import os
 import logging
 from logging.handlers import RotatingFileHandler
@@ -61,6 +62,12 @@ def create_app(config_class=Config):
                 template_folder=template_dir,
                 static_folder=static_dir)
     app.config.from_object(config_class)
+
+    # Cookie ayarlarını düzelt (partitioned hatası için)
+    app.config['SESSION_COOKIE_SECURE'] = False
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_PATH'] = '/'
 
     # Template filter'ları ekle
     @app.template_filter('strftime')
@@ -191,27 +198,47 @@ def register_error_handlers(app):
 def register_blueprints(app):
     """Blueprint'leri kaydet"""
 
-    from backend.routes.auth_routes import auth_bp
-    from backend.routes.community_routes import community_bp
-    from backend.routes.assistant_routes import assistant_bp
-    from backend.routes.test_routes import test_bp
-    from backend.routes.chat_routes import chat_bp
-    from backend.routes.admin_routes import admin_bp
+    try:
+        from backend.routes.auth_routes import auth_bp
+        app.register_blueprint(auth_bp, url_prefix="/api/auth")
+        app.logger.info("   ✅ /api/auth - Kimlik doğrulama")
+    except ImportError as e:
+        app.logger.error(f"   ❌ Auth blueprint yüklenemedi: {e}")
 
-    app.register_blueprint(auth_bp, url_prefix="/api/auth")
-    app.register_blueprint(community_bp, url_prefix="/api/community")
-    app.register_blueprint(assistant_bp, url_prefix="/api/assistant")
-    app.register_blueprint(test_bp, url_prefix="/api/test")
-    app.register_blueprint(chat_bp, url_prefix="/api/chat")
-    app.register_blueprint(admin_bp, url_prefix="/admin")
+    try:
+        from backend.routes.community_routes import community_bp
+        app.register_blueprint(community_bp, url_prefix="/api/community")
+        app.logger.info("   ✅ /api/community - Topluluk yönetimi")
+    except ImportError as e:
+        app.logger.error(f"   ❌ Community blueprint yüklenemedi: {e}")
 
-    app.logger.info("📋 Blueprint'ler kaydedildi:")
-    app.logger.info("   - /api/auth")
-    app.logger.info("   - /api/community")
-    app.logger.info("   - /api/assistant")
-    app.logger.info("   - /api/test")
-    app.logger.info("   - /api/chat")
-    app.logger.info("   - /admin")
+    try:
+        from backend.routes.assistant_routes import assistant_bp
+        app.register_blueprint(assistant_bp, url_prefix="/api/assistant")
+        app.logger.info("   ✅ /api/assistant - GPT asistan")
+    except ImportError as e:
+        app.logger.error(f"   ❌ Assistant blueprint yüklenemedi: {e}")
+
+    try:
+        from backend.routes.test_routes import test_bp
+        app.register_blueprint(test_bp, url_prefix="/api/test")
+        app.logger.info("   ✅ /api/test - Test yönetimi")
+    except ImportError as e:
+        app.logger.error(f"   ❌ Test blueprint yüklenemedi: {e}")
+
+    try:
+        from backend.routes.chat_routes import chat_bp
+        app.register_blueprint(chat_bp, url_prefix="/api/chat")
+        app.logger.info("   ✅ /api/chat - Sohbet")
+    except ImportError as e:
+        app.logger.error(f"   ❌ Chat blueprint yüklenemedi: {e}")
+
+    try:
+        from backend.routes.admin_routes import admin_bp
+        app.register_blueprint(admin_bp, url_prefix="/admin")
+        app.logger.info("   ✅ /admin - Admin paneli")
+    except ImportError as e:
+        app.logger.warning(f"   ⚠️ Admin blueprint yüklenemedi: {e}")
 
 
 def register_core_routes(app):
@@ -236,9 +263,11 @@ def register_core_routes(app):
         }), 200
 
 
+# Flask uygulamasını export et
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
-    port = int(os.getenv("PORT", 5000))
+    port = int(os.getenv("PORT", 5001))
     host = os.getenv("HOST", "0.0.0.0")
 
     socketio.run(

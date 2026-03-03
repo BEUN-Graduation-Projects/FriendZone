@@ -14,10 +14,7 @@
         <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fas fa-users"></i>
-                    <span>FriendZone</span>
-                </div>
+                <div class="logo"><i class="fas fa-users"></i><span>FriendZone</span></div>
             </div>
 
             <div class="sidebar-content">
@@ -31,32 +28,19 @@
 
                 <div class="nav-section">
                     <h3>TOPLULUKLARIM</h3>
-                    <div class="communities-list" id="userCommunitiesList">
-                        <!-- User's communities will be loaded here -->
-                    </div>
+                    <div class="communities-list" id="userCommunitiesList"></div>
                 </div>
 
                 <div class="nav-section">
                     <h3>GEZİNTİ</h3>
-                    <a href="index.html" class="nav-item">
-                        <i class="fas fa-home"></i>
-                        <span>Ana Sayfa</span>
-                    </a>
-                    <a href="profile.html" class="nav-item">
-                        <i class="fas fa-user"></i>
-                        <span>Profilim</span>
-                    </a>
-                    <a href="communities.html" class="nav-item active">
-                        <i class="fas fa-users"></i>
-                        <span>Topluluklar</span>
-                    </a>
+                    <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Ana Sayfa</span></a>
+                    <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profilim</span></a>
+                    <a href="communities.html" class="nav-item active"><i class="fas fa-users"></i><span>Topluluklar</span></a>
+                    <a href="#" id="logout-btn" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Çıkış Yap</span></a>
                 </div>
 
                 <div class="sidebar-actions">
-                    <button class="btn btn-primary btn-small btn-full" id="createCommunityBtn">
-                        <i class="fas fa-plus"></i>
-                        Topluluk Oluştur
-                    </button>
+                    <button class="btn btn-primary btn-small btn-full" id="createCommunityBtn"><i class="fas fa-plus"></i> Topluluk Oluştur</button>
                 </div>
             </div>
         </nav>
@@ -64,18 +48,13 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="communities-container">
-                <!-- Header -->
                 <div class="communities-header">
                     <div class="header-content">
                         <h1>Topluluklarını Keşfet</h1>
                         <p>Kişiliğine ve hobilerine uygun topluluklarla etkileşime geç</p>
                     </div>
-
                     <div class="header-actions">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="communitySearch" placeholder="Topluluk ara...">
-                        </div>
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="communitySearch" placeholder="Topluluk ara..."></div>
                         <div class="filter-dropdown">
                             <select id="categoryFilter">
                                 <option value="">Tüm Kategoriler</option>
@@ -90,67 +69,37 @@
                     </div>
                 </div>
 
-                <!-- Recommendations Section -->
                 <section class="recommendations-section">
                     <div class="section-header">
                         <h2>Senin İçin Önerilenler</h2>
                         <p>AI analizi ile kişiliğine en uygun topluluklar</p>
                     </div>
-
-                    <div class="recommendations-grid" id="recommendationsGrid">
-                        <!-- Recommended communities will be loaded here -->
-                    </div>
-
-                    <div class="loading-state" id="recommendationsLoading">
-                        <div class="loading-spinner"></div>
-                        <p>Önerilen topluluklar yükleniyor...</p>
-                    </div>
+                    <div class="recommendations-grid" id="recommendationsGrid"></div>
+                    <div class="loading-state" id="recommendationsLoading"><div class="loading-spinner"></div><p>Önerilen topluluklar yükleniyor...</p></div>
                 </section>
 
-                <!-- All Communities Section -->
                 <section class="all-communities-section">
                     <div class="section-header">
                         <h2>Tüm Topluluklar</h2>
                         <p>FriendZone'daki tüm aktif toplulukları keşfet</p>
                     </div>
-
-                    <div class="communities-grid" id="communitiesGrid">
-                        <!-- All communities will be loaded here -->
-                    </div>
-
-                    <div class="loading-state" id="communitiesLoading">
-                        <div class="loading-spinner"></div>
-                        <p>Topluluklar yükleniyor...</p>
-                    </div>
-
+                    <div class="communities-grid" id="communitiesGrid"></div>
+                    <div class="loading-state" id="communitiesLoading"><div class="loading-spinner"></div><p>Topluluklar yükleniyor...</p></div>
                     <div class="empty-state" id="communitiesEmpty" style="display: none;">
-                        <div class="empty-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
+                        <div class="empty-icon"><i class="fas fa-users"></i></div>
                         <h3>Henüz hiç topluluk bulunmuyor</h3>
                         <p>İlk topluluğu oluşturan sen ol!</p>
-                        <button class="btn btn-primary" id="createFirstCommunityBtn">
-                            <i class="fas fa-plus"></i>
-                            Topluluk Oluştur
-                        </button>
+                        <button class="btn btn-primary" id="createFirstCommunityBtn"><i class="fas fa-plus"></i> Topluluk Oluştur</button>
                     </div>
                 </section>
 
-                <!-- Similar Users Section -->
                 <section class="similar-users-section">
                     <div class="section-header">
                         <h2>Benzer Öğrenciler</h2>
                         <p>Kişilik ve hobilerin benzeyen diğer öğrenciler</p>
                     </div>
-
-                    <div class="similar-users-grid" id="similarUsersGrid">
-                        <!-- Similar users will be loaded here -->
-                    </div>
-
-                    <div class="loading-state" id="similarUsersLoading">
-                        <div class="loading-spinner"></div>
-                        <p>Benzer kullanıcılar yükleniyor...</p>
-                    </div>
+                    <div class="similar-users-grid" id="similarUsersGrid"></div>
+                    <div class="loading-state" id="similarUsersLoading"><div class="loading-spinner"></div><p>Benzer kullanıcılar yükleniyor...</p></div>
                 </section>
             </div>
         </main>
@@ -161,70 +110,25 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Yeni Topluluk Oluştur</h3>
-                <button class="modal-close" id="closeModalBtn">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="modal-close" id="closeModalBtn"><i class="fas fa-times"></i></button>
             </div>
             <form class="modal-form" id="createCommunityForm">
-                <div class="form-group">
-                    <label for="communityName">Topluluk Adı *</label>
-                    <input type="text" id="communityName" name="name" required
-                           placeholder="Topluluğunun adını yaz">
-                </div>
-
-                <div class="form-group">
-                    <label for="communityDescription">Açıklama</label>
-                    <textarea id="communityDescription" name="description"
-                              placeholder="Topluluğunun amacını ve hedeflerini anlat"
-                              rows="3"></textarea>
-                </div>
-
+                <div class="form-group"><label for="communityName">Topluluk Adı *</label><input type="text" id="communityName" name="name" required placeholder="Topluluğunun adını yaz"></div>
+                <div class="form-group"><label for="communityDescription">Açıklama</label><textarea id="communityDescription" name="description" placeholder="Topluluğunun amacını ve hedeflerini anlat" rows="3"></textarea></div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="communityCategory">Kategori *</label>
-                        <select id="communityCategory" name="category" required>
-                            <option value="">Kategori seç</option>
-                            <option value="technology">Teknoloji</option>
-                            <option value="sports">Spor</option>
-                            <option value="arts">Sanat</option>
-                            <option value="outdoor">Açık Hava</option>
-                            <option value="education">Eğitim</option>
-                            <option value="social">Sosyal</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="communityMaxMembers">Maksimum Üye</label>
-                        <select id="communityMaxMembers" name="max_members">
-                            <option value="10">10 Üye</option>
-                            <option value="15">15 Üye</option>
-                            <option value="20">20 Üye</option>
-                            <option value="25">25 Üye</option>
-                            <option value="30">30 Üye</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label for="communityCategory">Kategori *</label><select id="communityCategory" name="category" required><option value="">Kategori seç</option><option value="technology">Teknoloji</option><option value="sports">Spor</option><option value="arts">Sanat</option><option value="outdoor">Açık Hava</option><option value="education">Eğitim</option><option value="social">Sosyal</option></select></div>
+                    <div class="form-group"><label for="communityMaxMembers">Maksimum Üye</label><select id="communityMaxMembers" name="max_members"><option value="10">10 Üye</option><option value="15">15 Üye</option><option value="20">20 Üye</option><option value="25">25 Üye</option><option value="30">30 Üye</option></select></div>
                 </div>
-
-                <div class="form-group">
-                    <label for="communityTags">Etiketler</label>
-                    <input type="text" id="communityTags" name="tags"
-                           placeholder="teknoloji,programlama,ai (virgülle ayır)">
-                </div>
-
+                <div class="form-group"><label for="communityTags">Etiketler</label><input type="text" id="communityTags" name="tags" placeholder="teknoloji,programlama,ai (virgülle ayır)"></div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" id="cancelCreateBtn">
-                        İptal
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Topluluk Oluştur
-                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelCreateBtn">İptal</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Topluluk Oluştur</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="js/communityManager.js"></script>
     <script src="js/communityHandler.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

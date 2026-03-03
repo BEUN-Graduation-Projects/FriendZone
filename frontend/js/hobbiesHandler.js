@@ -1,3 +1,5 @@
+// frontend/js/hobbiesHandler.js
+
 class HobbiesHandler {
     constructor() {
         this.selectedHobbies = new Set();
@@ -37,15 +39,12 @@ class HobbiesHandler {
 
     async loadHobbies() {
         try {
-            // Hide loading state after a short delay
             setTimeout(() => {
                 document.getElementById('loadingState').style.display = 'none';
             }, 1000);
 
-            // For now, we'll use the categories data to create hobbies
             this.hobbies = this.generateHobbiesFromCategories();
             this.renderHobbies();
-
         } catch (error) {
             console.error('Hobi yükleme hatası:', error);
             document.getElementById('loadingState').style.display = 'none';
@@ -102,9 +101,7 @@ class HobbiesHandler {
             'Fotoğrafçılık': 'fa-camera',
             'Doğa Yürüyüşü': 'fa-hiking',
             'Kitap Okuma': 'fa-book',
-            'Dil Öğrenme': 'fa-language',
-            'Gönüllülük': 'fa-hands-helping',
-            'Network': 'fa-network-wired'
+            'Dil Öğrenme': 'fa-language'
         };
 
         return iconMap[activity] || 'fa-heart';
@@ -148,6 +145,8 @@ class HobbiesHandler {
 
     renderCategories() {
         const container = document.querySelector('.categories-scroll');
+        if (!container) return;
+
         const categoriesHTML = `
             <button class="category-btn active" data-category="all">
                 <i class="fas fa-th-large"></i>
@@ -177,6 +176,8 @@ class HobbiesHandler {
 
     renderHobbies() {
         const container = document.getElementById('hobbiesGrid');
+        if (!container) return;
+
         const filteredHobbies = this.currentCategory === 'all'
             ? this.hobbies
             : this.hobbies.filter(hobby => hobby.category === this.currentCategory);
@@ -200,7 +201,6 @@ class HobbiesHandler {
                     </div>
                     <div class="hobby-info">
                         <div class="hobby-name">${hobby.name}</div>
-                        <div class="hobby-description">${hobby.description}</div>
                         <div class="hobby-category">${hobby.categoryName}</div>
                     </div>
                 </div>
@@ -211,7 +211,6 @@ class HobbiesHandler {
     }
 
     setupEventListeners() {
-        // Category filter
         document.addEventListener('click', (e) => {
             if (e.target.closest('.category-btn')) {
                 const btn = e.target.closest('.category-btn');
@@ -220,27 +219,28 @@ class HobbiesHandler {
             }
         });
 
-        // Hobby selection
-        document.getElementById('hobbiesGrid').addEventListener('click', (e) => {
-            const hobbyCard = e.target.closest('.hobby-card');
-            if (hobbyCard && !hobbyCard.classList.contains('disabled')) {
-                this.toggleHobbySelection(hobbyCard.dataset.hobbyId);
-            }
-        });
+        const hobbiesGrid = document.getElementById('hobbiesGrid');
+        if (hobbiesGrid) {
+            hobbiesGrid.addEventListener('click', (e) => {
+                const hobbyCard = e.target.closest('.hobby-card');
+                if (hobbyCard && !hobbyCard.classList.contains('disabled')) {
+                    this.toggleHobbySelection(hobbyCard.dataset.hobbyId);
+                }
+            });
+        }
 
-        // Clear selection
-        document.getElementById('clearSelectionBtn').addEventListener('click', () => {
-            this.clearSelection();
-        });
+        const clearBtn = document.getElementById('clearSelectionBtn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearSelection());
+        }
 
-        // Submit hobbies
-        document.getElementById('submitHobbiesBtn').addEventListener('click', () => {
-            this.submitHobbies();
-        });
+        const submitBtn = document.getElementById('submitHobbiesBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => this.submitHobbies());
+        }
     }
 
     filterByCategory(category, button) {
-        // Update active button
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.classList.remove('active');
         });
@@ -274,30 +274,19 @@ class HobbiesHandler {
     }
 
     updateSelectionCount() {
-        const count = this.selectedHobbies.size;
-        document.getElementById('selectedCount').textContent = count;
-
-        // Update selection info
-        const selectionInfo = document.querySelector('.selection-info');
-        if (count >= this.maxSelection) {
-            if (!document.querySelector('.limit-warning')) {
-                const warning = document.createElement('div');
-                warning.className = 'limit-warning';
-                warning.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Maksimum ${this.maxSelection} hobi seçebilirsin`;
-                selectionInfo.appendChild(warning);
-            }
-        } else {
-            const warning = document.querySelector('.limit-warning');
-            if (warning) warning.remove();
+        const countElement = document.getElementById('selectedCount');
+        if (countElement) {
+            countElement.textContent = this.selectedHobbies.size;
         }
     }
 
     updateSelectedHobbiesList() {
         const container = document.getElementById('selectedHobbiesList');
+        if (!container) return;
+
         const selectedHobbies = Array.from(this.selectedHobbies).map(id => {
-            const hobby = this.hobbies.find(h => h.id === id);
-            return hobby;
-        });
+            return this.hobbies.find(h => h.id === id);
+        }).filter(h => h);
 
         if (selectedHobbies.length === 0) {
             container.innerHTML = '<div class="empty-selection">Henüz hobi seçilmedi</div>';
@@ -314,16 +303,12 @@ class HobbiesHandler {
 
     updateSubmitButton() {
         const btn = document.getElementById('submitHobbiesBtn');
+        if (!btn) return;
+
         const isValid = this.selectedHobbies.size >= this.minSelection &&
                        this.selectedHobbies.size <= this.maxSelection;
 
         btn.disabled = !isValid;
-
-        if (this.selectedHobbies.size < this.minSelection) {
-            btn.title = `En az ${this.minSelection} hobi seçmelisin`;
-        } else {
-            btn.title = '';
-        }
     }
 
     async submitHobbies() {
@@ -337,26 +322,36 @@ class HobbiesHandler {
 
         try {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
-            const response = await fetch('/api/test/submit-hobbies', {
+            const token = localStorage.getItem('friendzone_token');
+
+            const selectedHobbyNames = Array.from(this.selectedHobbies).map(id => {
+                const hobby = this.hobbies.find(h => h.id === id);
+                return hobby ? hobby.name : id;
+            });
+
+            const response = await fetch('/api/test/hobbies', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('friendzone_token')}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     user_id: user.id,
-                    hobbies: Array.from(this.selectedHobbies)
+                    hobbies: selectedHobbyNames
                 })
             });
 
             const result = await response.json();
 
-            if (response.ok) {
-                this.showSuccess(result);
+            if (response.ok && result.success) {
+                user.hobbies = selectedHobbyNames;
+                user.is_test_completed = true;
+                localStorage.setItem('friendzone_user', JSON.stringify(user));
+
+                this.showSuccess();
             } else {
                 throw new Error(result.message || 'Hobiler kaydedilemedi');
             }
-
         } catch (error) {
             console.error('Hobi gönderme hatası:', error);
             alert('Hobiler kaydedilirken bir hata oluştu: ' + error.message);
@@ -365,9 +360,10 @@ class HobbiesHandler {
         }
     }
 
-    showSuccess(result) {
-        // Update UI to show success
+    showSuccess() {
         const mainContent = document.querySelector('.hobbies-content');
+        if (!mainContent) return;
+
         mainContent.innerHTML = `
             <div class="success-state">
                 <div class="success-icon">
@@ -375,13 +371,6 @@ class HobbiesHandler {
                 </div>
                 <h2>Harika! Hobilerin Kaydedildi</h2>
                 <p>Senin için özel topluluklar oluşturuluyor...</p>
-                <div class="community-assignment">
-                    <div class="assignment-info">
-                        <i class="fas fa-robot"></i>
-                        <span>AI topluluk eşleştirmesi yapılıyor</span>
-                    </div>
-                    <div class="loading-spinner"></div>
-                </div>
                 <div class="success-actions">
                     <a href="communities.html" class="btn btn-primary btn-large">
                         <i class="fas fa-users"></i>
@@ -391,57 +380,6 @@ class HobbiesHandler {
             </div>
         `;
 
-        // Add success styles
-        const style = document.createElement('style');
-        style.textContent = `
-            .success-state {
-                text-align: center;
-                padding: 60px 20px;
-            }
-            .success-icon {
-                width: 100px;
-                height: 100px;
-                background: linear-gradient(135deg, var(--accent-success), var(--accent-primary));
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 40px;
-                color: white;
-                margin: 0 auto 24px;
-            }
-            .success-state h2 {
-                font-size: 2rem;
-                font-weight: 700;
-                color: var(--text-primary);
-                margin-bottom: 16px;
-            }
-            .success-state p {
-                font-size: 1.125rem;
-                color: var(--text-secondary);
-                margin-bottom: 32px;
-            }
-            .community-assignment {
-                background: var(--bg-secondary);
-                padding: 20px;
-                border-radius: var(--border-radius);
-                margin-bottom: 32px;
-            }
-            .assignment-info {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 12px;
-                margin-bottom: 16px;
-                color: var(--text-secondary);
-            }
-            .assignment-info i {
-                color: var(--accent-primary);
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Redirect after delay
         setTimeout(() => {
             window.location.href = 'communities.html';
         }, 3000);
@@ -462,16 +400,22 @@ class HobbiesHandler {
     loadUserData() {
         const user = JSON.parse(localStorage.getItem('friendzone_user'));
         if (user) {
-            document.getElementById('userName').textContent = user.name;
-            document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+            const userNameEl = document.getElementById('userName');
+            const userAvatarEl = document.getElementById('userAvatar');
+
+            if (userNameEl) userNameEl.textContent = user.name || 'Kullanıcı';
+            if (userAvatarEl) userAvatarEl.textContent = (user.name || 'K').charAt(0).toUpperCase();
         }
     }
 
     loadPersonalityData() {
         const user = JSON.parse(localStorage.getItem('friendzone_user'));
         if (user && user.personality_type) {
-            document.getElementById('personalityBadge').textContent = user.personality_type;
-            document.getElementById('personalityPreview').style.display = 'block';
+            const personalityBadge = document.getElementById('personalityBadge');
+            const personalityPreview = document.getElementById('personalityPreview');
+
+            if (personalityBadge) personalityBadge.textContent = user.personality_type;
+            if (personalityPreview) personalityPreview.style.display = 'block';
         }
     }
 }

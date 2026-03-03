@@ -14,10 +14,7 @@
         <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fas fa-users"></i>
-                    <span>FriendZone</span>
-                </div>
+                <div class="logo"><i class="fas fa-users"></i><span>FriendZone</span></div>
             </div>
 
             <div class="sidebar-content">
@@ -33,27 +30,21 @@
                     <h3>TEST SÜRECİ</h3>
                     <div class="progress-indicator">
                         <div class="progress-step completed">
-                            <div class="step-icon">
-                                <i class="fas fa-check"></i>
-                            </div>
+                            <div class="step-icon"><i class="fas fa-check"></i></div>
                             <div class="step-info">
                                 <div class="step-title">Kişilik Testi</div>
                                 <div class="step-status">Tamamlandı</div>
                             </div>
                         </div>
                         <div class="progress-step active">
-                            <div class="step-icon">
-                                <i class="fas fa-heart"></i>
-                            </div>
+                            <div class="step-icon"><i class="fas fa-heart"></i></div>
                             <div class="step-info">
                                 <div class="step-title">Hobi Testi</div>
                                 <div class="step-status">Aktif</div>
                             </div>
                         </div>
                         <div class="progress-step">
-                            <div class="step-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
+                            <div class="step-icon"><i class="fas fa-users"></i></div>
                             <div class="step-info">
                                 <div class="step-title">Topluluklar</div>
                                 <div class="step-status">Sonraki</div>
@@ -64,24 +55,15 @@
 
                 <div class="selected-hobbies-sidebar">
                     <h3>SEÇİLEN HOBİLER</h3>
-                    <div class="selected-hobbies-list" id="selectedHobbiesList">
-                        <!-- Selected hobbies will appear here -->
-                    </div>
-                    <div class="selection-count">
-                        <span id="selectedCount">0</span> / 8 hobi seçildi
-                    </div>
+                    <div class="selected-hobbies-list" id="selectedHobbiesList"></div>
+                    <div class="selection-count"><span id="selectedCount">0</span> / 8 hobi seçildi</div>
                 </div>
 
                 <div class="nav-section">
                     <h3>GEZİNTİ</h3>
-                    <a href="index.html" class="nav-item">
-                        <i class="fas fa-home"></i>
-                        <span>Ana Sayfa</span>
-                    </a>
-                    <a href="profile.html" class="nav-item">
-                        <i class="fas fa-user"></i>
-                        <span>Profilim</span>
-                    </a>
+                    <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Ana Sayfa</span></a>
+                    <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profilim</span></a>
+                    <a href="#" id="logout-btn" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Çıkış Yap</span></a>
                 </div>
             </div>
         </nav>
@@ -89,78 +71,34 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="hobbies-container">
-                <!-- Header -->
                 <div class="hobbies-header">
                     <div class="header-content">
                         <h1>Hobi ve İlgi Alanlarını Seç</h1>
-                        <p>En çok keyif aldığın aktiviteleri seç ve benzer ilgi alanlarına sahip öğrencilerle eşleş</p>
-                    </div>
-                    <div class="selection-info">
-                        <div class="info-badge">
-                            <i class="fas fa-info-circle"></i>
-                            En az 3, en fazla 8 hobi seçmelisin
-                        </div>
+                        <p>En az 3, en fazla 8 hobi seç. Benzer ilgi alanlarına sahip öğrencilerle eşleş!</p>
                     </div>
                 </div>
 
-                <!-- Categories Navigation -->
                 <div class="categories-nav">
-                    <div class="categories-scroll">
-                        <button class="category-btn active" data-category="all">
-                            <i class="fas fa-th-large"></i>
-                            Tümü
-                        </button>
-                        <!-- Categories will be loaded dynamically -->
+                    <div class="categories-scroll" id="categoriesContainer">
+                        <!-- Categories will be loaded here -->
                     </div>
                 </div>
 
-                <!-- Hobbies Grid -->
                 <div class="hobbies-content">
-                    <div class="hobbies-grid" id="hobbiesGrid">
-                        <!-- Hobbies will be loaded here dynamically -->
-                    </div>
-
-                    <!-- Loading State -->
-                    <div class="loading-state" id="loadingState">
-                        <div class="loading-spinner"></div>
-                        <p>Hobiler yükleniyor...</p>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div class="empty-state" id="emptyState" style="display: none;">
-                        <div class="empty-icon">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                        <h3>Henüz hiç hobi seçmedin</h3>
-                        <p>Yukarıdaki kategorilerden ilgi alanlarını seçmeye başla!</p>
-                    </div>
+                    <div class="hobbies-grid" id="hobbiesGrid"></div>
+                    <div class="loading-state" id="loadingState"><div class="loading-spinner"></div><p>Hobiler yükleniyor...</p></div>
+                    <div class="empty-state" id="emptyState" style="display: none;"><div class="empty-icon"><i class="fas fa-heart"></i></div><h3>Henüz hobi seçilmedi</h3><p>Yukarıdaki kategorilerden seçim yapmaya başla!</p></div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="hobbies-actions">
-                    <button class="btn btn-secondary" id="clearSelectionBtn">
-                        <i class="fas fa-undo"></i>
-                        Seçimi Temizle
-                    </button>
-                    <button class="btn btn-primary" id="submitHobbiesBtn" disabled>
-                        <i class="fas fa-paper-plane"></i>
-                        Hobileri Kaydet ve Topluluklara Katıl
-                    </button>
-                </div>
-
-                <!-- Personality Preview -->
-                <div class="personality-preview" id="personalityPreview">
-                    <div class="preview-header">
-                        <h3>Kişilik Profilin</h3>
-                        <div class="personality-badge" id="personalityBadge">
-                            <!-- Personality badge will be loaded here -->
-                        </div>
-                    </div>
+                    <button class="btn btn-secondary" id="clearSelectionBtn"><i class="fas fa-undo"></i> Seçimi Temizle</button>
+                    <button class="btn btn-primary" id="submitHobbiesBtn" disabled><i class="fas fa-paper-plane"></i> Hobileri Kaydet ve Topluluklara Katıl</button>
                 </div>
             </div>
         </main>
     </div>
 
     <script src="js/hobbiesHandler.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
