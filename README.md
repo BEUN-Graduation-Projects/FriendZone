@@ -10,8 +10,6 @@
 
 **Üniversite öğrencileri için AI destekli, kişilik ve hobi tabanlı sosyal topluluk platformu**
 
-[🚀 Canlı Demo](https://friendzone-demo.com) • [📚 Dokümantasyon](docs/) • [🐛 Hata Bildir](https://github.com/BEUN-Graduation-Projects/FriendZone/issues)
-
 </div>
 
 
@@ -724,3 +722,4 @@ Bu proje **MIT lisansı** altında lisanslanmıştır. Detaylar için [LICENSE](
 [⬆ Yukarı Çık](#-friendzone)
 
 </div>
+
