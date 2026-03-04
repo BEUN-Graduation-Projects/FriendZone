@@ -1,6 +1,6 @@
 # backend/models/community_model.py
 
-from backend import db
+from backend.app import db
 from datetime import datetime
 from sqlalchemy import UniqueConstraint, Index
 from sqlalchemy.orm import relationship
@@ -50,7 +50,7 @@ class Community(db.Model):
     )
 
     # ---------------------------
-    # Relationships
+    # Relationships - TÜM İLİŞKİLER STRING OLARAK TANIMLANMALI!
     # ---------------------------
 
     members = relationship(
@@ -66,7 +66,6 @@ class Community(db.Model):
         lazy="selectin"
     )
 
-    # Mesaj ilişkisi - ChatMessage ile bağlantı
     messages = relationship(
         "ChatMessage",
         back_populates="community",
@@ -74,11 +73,10 @@ class Community(db.Model):
         lazy="dynamic"
     )
 
-    # ChatRoom ilişkisi - Her topluluğun bir chat odası olabilir
     chat_room = relationship(
         "ChatRoom",
-        back_populates="community",
-        uselist=False,  # One-to-One ilişki
+        back_populates="community",  # backref değil, back_populates!
+        uselist=False,
         cascade="all, delete-orphan"
     )
 
@@ -196,7 +194,7 @@ class Community(db.Model):
         room = ChatRoom.create_for_community(
             community_id=self.id,
             community_name=self.name,
-            max_members=self.max_members * 2  # Chat odası kapasitesi topluluk kapasitesinin 2 katı
+            max_members=self.max_members * 2
         )
         logger.info(f"Topluluk için yeni chat odası oluşturuldu: {self.name}")
         return room
@@ -360,7 +358,7 @@ class CommunityMember(db.Model):
     last_active = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     message_count = db.Column(db.Integer, default=0)
 
-    # Relationships
+    # Relationships - TÜM İLİŞKİLER STRING OLARAK TANIMLANMALI!
     community = relationship("Community", back_populates="members")
     user = relationship("User", back_populates="communities", lazy="selectin")
 

@@ -1,10 +1,8 @@
 # backend/models/chat_model.py
 
-import json
-from datetime import datetime, timezone
 from backend.app import db
-from sqlalchemy import Index  # 🟢 BU İMPORT'U EKLE!
-
+from datetime import datetime, timezone
+from sqlalchemy import Index
 
 class ChatMessage(db.Model):
     __tablename__ = 'chat_messages'
@@ -15,15 +13,15 @@ class ChatMessage(db.Model):
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    community_id = db.Column(db.Integer, db.ForeignKey('communities.id', ondelete='CASCADE'), nullable=False,
-                             index=True)
+    community_id = db.Column(db.Integer, db.ForeignKey('communities.id', ondelete='CASCADE'), nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('chat_rooms.id', ondelete='CASCADE'), nullable=True, index=True)  # YENİ!
 
     # İçerik ve Tip
     content = db.Column(db.Text, nullable=False)
-    message_type = db.Column(db.String(20), default='text', index=True)  # text, image, file, system, etc.
+    message_type = db.Column(db.String(20), default='text', index=True)
 
-    # Zaman Damgaları (UTC kullanımı)
+    # Zaman Damgaları
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     edited = db.Column(db.Boolean, default=False)
     edited_at = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
@@ -31,17 +29,20 @@ class ChatMessage(db.Model):
     # İlişkisel Yapı
     reply_to = db.Column(db.Integer, db.ForeignKey('chat_messages.id', ondelete='SET NULL'), nullable=True)
 
-    # Esnek Veri (Reactions ve Metadata)
+    # Esnek Veri
     reactions = db.Column(db.JSON, default=dict)
-    metadata_json = db.Column(db.JSON, nullable=True)  # Dosya boyutu, resim çözünürlüğü vb.
+    metadata_json = db.Column(db.JSON, nullable=True)
 
-    # İlişkiler
-    user = db.relationship('User', back_populates='messages')
-    community = db.relationship('Community', back_populates='messages')
+    # ---------------------------
+    # Relationships - TÜM İLİŞKİLER STRING ve back_populates İLE!
+    # ---------------------------
+    user = db.relationship("User", back_populates="messages")
+    community = db.relationship("Community", back_populates="messages")
+    room = db.relationship("ChatRoom", back_populates="messages")  # YENİ!
 
     # Yanıt mekanizması için self-referential ilişki
     replies = db.relationship(
-        'ChatMessage',
+        "ChatMessage",
         backref=db.backref('parent', remote_side=[id]),
         lazy='dynamic'
     )
@@ -50,11 +51,10 @@ class ChatMessage(db.Model):
         return f"<ChatMessage {self.id} by User {self.user_id}>"
 
     def add_reaction(self, user_id: int, emoji: str):
-        """Tepki ekleme mantığını model seviyesine taşıyoruz."""
+        """Tepki ekle"""
         if not self.reactions:
             self.reactions = {}
 
-        # mutable_json_type_support yoksa sözlüğü kopyalayıp güncellemelisin
         current_reactions = dict(self.reactions)
         if emoji not in current_reactions:
             current_reactions[emoji] = []
@@ -82,7 +82,7 @@ class ChatMessage(db.Model):
         return False
 
     def to_dict(self):
-        """API yanıtları için optimize edilmiş dönüşüm."""
+        """API yanıtları için dictionary dönüşümü"""
         return {
             'id': self.id,
             'sender': {
@@ -90,6 +90,7 @@ class ChatMessage(db.Model):
                 'name': self.user.name if self.user else "Silinmiş Kullanıcı"
             },
             'community_id': self.community_id,
+            'room_id': self.room_id,
             'content': self.content,
             'message_type': self.message_type,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,

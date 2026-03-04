@@ -121,9 +121,14 @@ def initialize_extensions(app):
     cors.init_app(
         app,
         resources={
-            r"/api/*": {"origins": app.config.get("SOCKETIO_CORS_ALLOWED_ORIGINS")},
-            r"/admin/*": {"origins": app.config.get("SOCKETIO_CORS_ALLOWED_ORIGINS")},
-            r"/socket.io/*": {"origins": app.config.get("SOCKETIO_CORS_ALLOWED_ORIGINS")}
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:5001",
+                    "http://127.0.0.1:5001",
+                    "http://localhost:63342",  # WebStorm
+                    "http://127.0.0.1:63342"
+                ]
+            }
         },
         supports_credentials=True
     )

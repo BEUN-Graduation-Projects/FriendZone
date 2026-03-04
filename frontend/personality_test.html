@@ -1,100 +1,75 @@
+<!-- frontend/personality_test.html -->
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kişilik Testi - FriendZone</title>
+
+    <!-- CSS DOSYALARI -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/test.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome ve Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fas fa-users"></i>
-                    <span>FriendZone</span>
-                </div>
-            </div>
-
-            <div class="sidebar-content">
-                <div class="user-profile">
-                    <div class="avatar" id="userAvatar">K</div>
-                    <div class="user-info">
-                        <span class="username" id="userName">Kullanıcı</span>
-                        <span class="status">Test Modu</span>
-                    </div>
-                </div>
-
-                <div class="nav-section">
-                    <h3>TEST SÜRECİ</h3>
-                    <div class="progress-indicator">
-                        <div class="progress-step active">
-                            <div class="step-icon"><i class="fas fa-brain"></i></div>
-                            <div class="step-info">
-                                <div class="step-title">Kişilik Testi</div>
-                                <div class="step-status">Aktif</div>
-                            </div>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-icon"><i class="fas fa-heart"></i></div>
-                            <div class="step-info">
-                                <div class="step-title">Hobi Testi</div>
-                                <div class="step-status">Sonraki</div>
-                            </div>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-icon"><i class="fas fa-users"></i></div>
-                            <div class="step-info">
-                                <div class="step-title">Topluluklar</div>
-                                <div class="step-status">Son</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="nav-section">
-                    <h3>GEZİNTİ</h3>
-                    <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Ana Sayfa</span></a>
-                    <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profilim</span></a>
-                    <a href="#" id="logout-btn" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Çıkış Yap</span></a>
-                </div>
-            </div>
-        </nav>
+        <div id="sidebar-container"></div>
 
         <!-- Main Content -->
         <main class="main-content">
             <div class="test-container">
                 <div class="test-header">
-                    <div class="header-content">
-                        <h1>Kişilik Testi</h1>
-                        <p>10 soru ile kişilik özelliklerini keşfet ve en uygun topluluklarla eşleş</p>
-                    </div>
+                    <h1>Kişilik Testi</h1>
+                    <p>25 soru ile MBTI kişilik tipini keşfet ve en uygun topluluklarla eşleş</p>
                     <div class="test-progress">
-                        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-                        <div class="progress-text"><span id="currentQuestion">1</span> / <span id="totalQuestions">10</span></div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="currentQuestion">1</span> / <span id="totalQuestions">25</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="test-content">
-                    <div class="question-container" id="questionContainer">
-                        <!-- Questions will be loaded here -->
-                    </div>
+                    <div id="testQuestions"></div>
 
                     <div class="test-navigation">
-                        <button class="btn btn-secondary" id="prevBtn" disabled><i class="fas fa-arrow-left"></i> Önceki</button>
-                        <button class="btn btn-primary" id="nextBtn">Sonraki <i class="fas fa-arrow-right"></i></button>
-                        <button class="btn btn-success" id="submitBtn" style="display: none;"><i class="fas fa-paper-plane"></i> Testi Tamamla</button>
+                        <button class="btn btn-secondary" id="prevBtn" disabled>
+                            <i class="fas fa-arrow-left"></i> Önceki
+                        </button>
+                        <button class="btn btn-primary" id="nextBtn">
+                            Sonraki <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="btn btn-success" id="submitBtn" style="display: none;">
+                            <i class="fas fa-paper-plane"></i> Testi Tamamla
+                        </button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <script src="js/testHandler.js"></script>
+    <!-- JavaScript dosyaları -->
+    <script src="js/sidebar.js"></script>
+    <script src="js/personalityTest.js"></script>
     <script src="js/main.js"></script>
+
+    <script>
+        // Sidebar'ı yükle
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                if (window.sidebarManager) {
+                    window.sidebarManager.init();
+                }
+            });
+    </script>
 </body>
 </html>

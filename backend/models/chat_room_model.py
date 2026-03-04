@@ -3,8 +3,6 @@
 from backend.app import db
 from datetime import datetime
 from sqlalchemy import Index, UniqueConstraint
-import json
-
 
 class ChatRoom(db.Model):
     """Sanal topluluk sohbet odası"""
@@ -28,7 +26,7 @@ class ChatRoom(db.Model):
         'allow_files': True,
         'allow_links': True,
         'slow_mode': False,
-        'slow_mode_interval': 0,  # saniye cinsinden, 0 = kapalı
+        'slow_mode_interval': 0,
         'language': 'tr',
         'auto_delete': False,
         'auto_delete_days': 30
@@ -39,11 +37,29 @@ class ChatRoom(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_activity = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
-    # İlişkiler
-    community = db.relationship('Community',
-                                backref=db.backref('chat_room', uselist=False, cascade='all, delete-orphan'))
-    messages = db.relationship('ChatMessage', backref='room', lazy='dynamic', cascade='all, delete-orphan')
-    online_users = db.relationship('ChatUserStatus', backref='room', lazy='dynamic', cascade='all, delete-orphan')
+    # ---------------------------
+    # Relationships - DİKKAT: Burada backref KULLANMA!
+    # ---------------------------
+    community = db.relationship(
+        "Community",
+        back_populates="chat_room",  # backref değil, back_populates!
+        uselist=False
+    )
+
+    messages = db.relationship(
+        "ChatMessage",
+        back_populates="room",  # backref değil, back_populates!
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+        foreign_keys="[ChatMessage.room_id]"  # Hangi foreign key'i kullanacağını belirt
+    )
+
+    online_users = db.relationship(
+        "ChatUserStatus",
+        back_populates="room",
+        lazy="dynamic",
+        cascade="all, delete-orphan"
+    )
 
     def __init__(self, community_id, name, **kwargs):
         self.community_id = community_id
@@ -134,15 +150,16 @@ class ChatUserStatus(db.Model):
     # Durum bilgileri
     is_online = db.Column(db.Boolean, default=False, index=True)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
-    socket_id = db.Column(db.String(100), nullable=True)  # Socket.IO bağlantı ID'si
+    socket_id = db.Column(db.String(100), nullable=True)
 
     # İstatistikler
     total_messages = db.Column(db.Integer, default=0)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_message_at = db.Column(db.DateTime, nullable=True)
 
-    # İlişkiler
-    user = db.relationship('User', backref=db.backref('chat_statuses', lazy='dynamic'))
+    # Relationships - back_populates kullan!
+    user = db.relationship("User", back_populates="chat_statuses")
+    room = db.relationship("ChatRoom", back_populates="online_users")
 
     def __init__(self, user_id, room_id, **kwargs):
         self.user_id = user_id

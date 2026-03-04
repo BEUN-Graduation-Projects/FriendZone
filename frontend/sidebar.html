@@ -1,0 +1,83 @@
+<!-- frontend/sidebar.html - Tüm sayfalarda aynı sidebar -->
+
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="fas fa-users"></i>
+            <span>FriendZone</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-content">
+        <div class="user-profile" id="userProfile">
+            <div class="avatar" id="sidebarAvatar">
+                <span id="avatarText">M</span>
+            </div>
+            <div class="user-info">
+                <span class="username" id="sidebarUsername">Misafir</span>
+                <span class="status" id="userStatus">
+                    <i class="fas fa-circle" style="color: #4CAF50; font-size: 8px;"></i>
+                    Çevrimiçi
+                </span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <h3>GENEL</h3>
+            <a href="index.html" class="nav-item" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="communities.html" class="nav-item" data-page="communities">
+                <i class="fas fa-users"></i>
+                <span>Topluluklar</span>
+            </a>
+            <a href="profile.html" class="nav-item" data-page="profile">
+                <i class="fas fa-user"></i>
+                <span>Profilim</span>
+            </a>
+        </div>
+
+        <div class="nav-section" id="authSection">
+            <h3>HESAP</h3>
+            <a href="login.html" class="nav-item" data-page="login">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Giriş Yap</span>
+            </a>
+            <a href="signup.html" class="nav-item" data-page="signup">
+                <i class="fas fa-user-plus"></i>
+                <span>Kayıt Ol</span>
+            </a>
+        </div>
+
+        <div class="nav-section" id="testSection" style="display: none;">
+            <h3>TESTLER</h3>
+            <a href="personality_test.html" class="nav-item" data-page="personality">
+                <i class="fas fa-brain"></i>
+                <span>Kişilik Testi</span>
+            </a>
+            <a href="hobbies.html" class="nav-item" data-page="hobbies">
+                <i class="fas fa-heart"></i>
+                <span>Hobi Testi</span>
+            </a>
+        </div>
+
+        <div class="nav-section" id="logoutSection" style="display: none;">
+            <h3>OTURUM</h3>
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Çıkış Yap</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="connection-status">
+            <div class="status-indicator online"></div>
+            <span>Bağlantı Hazır</span>
+        </div>
+    </div>
+</nav>

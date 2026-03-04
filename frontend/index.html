@@ -65,6 +65,19 @@
         </main>
     </div>
 
-    <script src="js/main.js"></script>
+    <script src="js/sidebar.js"></script>
+    <!-- Sonra diğer scriptler -->
+    <script>
+        // Sidebar'ı yükle
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+                // Sidebar yüklendikten sonra sidebarManager'ı başlat
+                if (window.sidebarManager) {
+                    window.sidebarManager.init();
+                }
+            });
+    </script>
 </body>
 </html>

@@ -52,18 +52,18 @@ class User(db.Model):
     )
 
     # --------------------------------------------------
-    # Relationships
+    # Relationships - DİKKAT: Burada class isimleri STRING olmalı!
     # --------------------------------------------------
 
     communities = relationship(
-        "CommunityMember",
+        "CommunityMember",  # String olarak yaz!
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="selectin"
     )
 
     similarities = relationship(
-        "UserSimilarity",
+        "UserSimilarity",  # String olarak yaz!
         foreign_keys="UserSimilarity.user_id",
         back_populates="user",
         lazy="selectin"
@@ -71,14 +71,14 @@ class User(db.Model):
 
     # Chat ilişkileri
     messages = relationship(
-        "ChatMessage",
+        "ChatMessage",  # String olarak yaz!
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="dynamic"
     )
 
-    chat_status = relationship(
-        "ChatUserStatus",
+    chat_statuses = relationship(
+        "ChatUserStatus",  # String olarak yaz!
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="dynamic"
@@ -111,30 +111,13 @@ class User(db.Model):
         return check_password_hash(self.password_hash, raw_password)
 
     # --------------------------------------------------
-    # CRUD Operations (YENİ EKLENEN METODLAR)
+    # CRUD Operations
     # --------------------------------------------------
 
     @classmethod
     def create_user(cls, user_data):
         """
         Yeni kullanıcı oluştur - transaction güvenli
-
-        Args:
-            user_data (dict): {
-                'name': str,
-                'email': str,
-                'password': str,
-                'university': str (opsiyonel),
-                'department': str (opsiyonel),
-                'year': int (opsiyonel)
-            }
-
-        Returns:
-            User: Oluşturulan kullanıcı nesnesi
-
-        Raises:
-            ValueError: Email zaten kayıtlıysa
-            Exception: Diğer hatalarda
         """
         try:
             # Email benzersizlik kontrolü
@@ -167,125 +150,9 @@ class User(db.Model):
             logger.error(f"❌ Kullanıcı oluşturma hatası: {str(e)}")
             raise
 
-    def save_test_results(self, personality_data=None, hobbies_data=None):
-        """
-        Test sonuçlarını kaydet - atomic transaction
-
-        Args:
-            personality_data (dict, optional): {
-                'type': str (örn: 'analytical_introvert'),
-                'scores': dict (kişilik skorları)
-            }
-            hobbies_data (list, optional): Hobi listesi (örn: ['programlama', 'müzik'])
-
-        Returns:
-            bool: İşlem başarılı mı?
-
-        Raises:
-            Exception: Hata durumunda
-        """
-        try:
-            # Kişilik testi sonuçları
-            if personality_data:
-                self.personality_type = personality_data.get('type')
-                self.personality_scores = personality_data.get('scores', {})
-                logger.info(f"📊 Kişilik testi kaydedildi: {self.personality_type}")
-
-            # Hobi sonuçları
-            if hobbies_data is not None:
-                # Hobileri listeye çevir (eğer string gelirse)
-                if isinstance(hobbies_data, str):
-                    try:
-                        hobbies_data = json.loads(hobbies_data)
-                    except:
-                        hobbies_data = [h.strip() for h in hobbies_data.split(',')]
-
-                self.hobbies = hobbies_data
-                logger.info(f"🎯 Hobiler kaydedildi: {len(hobbies_data)} aktivite")
-
-            # Test tamamlanma durumunu güncelle
-            self.is_test_completed = bool(self.personality_type and self.hobbies)
-            self.updated_at = datetime.utcnow()
-
-            db.session.commit()
-
-            status = "tamamlandı" if self.is_test_completed else "kısmi tamamlandı"
-            logger.info(f"✅ Test sonuçları {status}: {self.email}")
-
-            return True
-
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"❌ Test kaydetme hatası: {str(e)}")
-            raise
-
-    def update_profile(self, profile_data):
-        """
-        Kullanıcı profilini güncelle
-
-        Args:
-            profile_data (dict): Güncellenecek alanlar
-
-        Returns:
-            bool: İşlem başarılı mı?
-        """
-        try:
-            updatable_fields = ['name', 'university', 'department', 'year']
-
-            for field in updatable_fields:
-                if field in profile_data:
-                    setattr(self, field, profile_data[field])
-
-            self.updated_at = datetime.utcnow()
-            db.session.commit()
-
-            logger.info(f"✅ Profil güncellendi: {self.email}")
-            return True
-
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"❌ Profil güncelleme hatası: {str(e)}")
-            raise
-
     # --------------------------------------------------
     # Business Logic
     # --------------------------------------------------
-
-    def get_similar_users(self, limit=5):
-        """
-        Daha performanslı sorgu - benzer kullanıcıları getir
-        """
-        from backend.models.similarity_model import UserSimilarity
-
-        similarities = (
-            db.session.query(UserSimilarity)
-            .filter(
-                (UserSimilarity.user_id == self.id) |
-                (UserSimilarity.similar_user_id == self.id)
-            )
-            .order_by(UserSimilarity.similarity_score.desc())
-            .limit(limit)
-            .all()
-        )
-
-        similar_users = []
-
-        for sim in similarities:
-            other_user_id = (
-                sim.similar_user_id
-                if sim.user_id == self.id
-                else sim.user_id
-            )
-
-            similar_user = db.session.get(User, other_user_id)
-
-            if similar_user and similar_user.id != self.id:
-                similar_users.append({
-                    "user": similar_user.to_dict(),
-                    "similarity_score": sim.similarity_score
-                })
-
-        return similar_users
 
     def get_hobbies_list(self):
         """Hobileri liste olarak döndür"""
@@ -300,24 +167,8 @@ class User(db.Model):
 
         return self.hobbies
 
-    def is_online(self):
-        """Kullanıcının çevrimiçi olup olmadığını kontrol et"""
-        from backend.models.chat_room_model import ChatUserStatus
-
-        latest_status = self.chat_status.filter_by(is_online=True).first()
-        return latest_status is not None
-
-    # --------------------------------------------------
-    # Serialization
-    # --------------------------------------------------
-
     def to_dict(self, include_sensitive=False):
-        """
-        Kullanıcı bilgilerini dictionary formatında döndür
-
-        Args:
-            include_sensitive (bool): Hassas bilgileri dahil et (şifre hariç)
-        """
+        """Kullanıcı bilgilerini dictionary formatında döndür"""
         data = {
             "id": self.id,
             "name": self.name,
@@ -330,7 +181,6 @@ class User(db.Model):
             "hobbies": self.get_hobbies_list(),
             "is_test_completed": self.is_test_completed,
             "is_active": self.is_active,
-            "is_online": self.is_online(),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -348,39 +198,10 @@ class User(db.Model):
 
         return data
 
-    # --------------------------------------------------
-    # Class Methods
-    # --------------------------------------------------
-
     @classmethod
     def find_by_email(cls, email: str):
         """Email ile kullanıcı bul"""
         return cls.query.filter_by(email=email.lower().strip()).first()
-
-    @classmethod
-    def find_by_id(cls, user_id: int):
-        """ID ile kullanıcı bul"""
-        return cls.query.get(user_id)
-
-    @classmethod
-    def get_active_test_users(cls):
-        """Testi tamamlamış aktif kullanıcıları getir"""
-        return cls.query.filter_by(
-            is_test_completed=True,
-            is_active=True
-        ).all()
-
-    @classmethod
-    def search_by_name(cls, query: str, limit: int = 10):
-        """İsimle kullanıcı ara"""
-        return cls.query.filter(
-            cls.name.ilike(f'%{query}%'),
-            cls.is_active == True
-        ).limit(limit).all()
-
-    # --------------------------------------------------
-    # Representation
-    # --------------------------------------------------
 
     def __repr__(self):
         return f"<User {self.id} | {self.email}>"

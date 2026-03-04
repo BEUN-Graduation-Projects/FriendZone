@@ -1,4 +1,4 @@
-// frontend/js/auth.js
+// frontend/js/auth.js - TAM DOSYA
 
 class AuthManager {
     constructor() {
@@ -11,26 +11,27 @@ class AuthManager {
     }
 
     setupEventListeners() {
-        // Password toggle
         const passwordToggle = document.getElementById('passwordToggle');
         if (passwordToggle) {
             passwordToggle.addEventListener('click', this.togglePasswordVisibility.bind(this));
         }
 
-        // Form submission
         const loginForm = document.getElementById('loginForm');
         const signupForm = document.getElementById('signupForm');
 
         if (loginForm) {
-            loginForm.addEventListener('submit', this.handleLogin.bind(this));
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleLogin(e);
+            });
         }
 
         if (signupForm) {
-            signupForm.addEventListener('submit', this.handleSignup.bind(this));
+            signupForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleSignup(e);
+            });
         }
-
-        // Real-time validation
-        this.setupRealTimeValidation();
     }
 
     togglePasswordVisibility() {
@@ -46,65 +47,53 @@ class AuthManager {
         }
     }
 
-    async handleLogin(e) {
-        e.preventDefault();
-
-        const formData = new FormData(e.target);
-        const data = {
-            email: formData.get('email'),
-            password: formData.get('password'),
-            remember: formData.get('remember') === 'on'
-        };
-
-        if (!this.validateLoginData(data)) {
-            return;
-        }
-
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        this.setLoadingState(submitBtn, true);
-
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                localStorage.setItem('friendzone_token', result.data.token);
-                localStorage.setItem('friendzone_user', JSON.stringify(result.data.user));
-
-                this.showSuccess('Başarıyla giriş yapıldı! Yönlendiriliyorsunuz...');
-
-                setTimeout(() => {
-                    window.location.href = 'communities.html';
-                }, 1500);
-            } else {
-                throw new Error(result.message || 'Giriş başarısız');
-            }
-        } catch (error) {
-            this.showError(error.message);
-        } finally {
-            this.setLoadingState(submitBtn, false);
-        }
-    }
-
     async handleSignup(e) {
-        e.preventDefault();
-
         const formData = new FormData(e.target);
         const data = {
-            name: formData.get('name'),
-            email: formData.get('email'),
+            name: formData.get('name')?.trim(),
+            email: formData.get('email')?.trim().toLowerCase(),
             password: formData.get('password'),
             university: formData.get('university'),
             department: formData.get('department'),
             year: parseInt(formData.get('year'))
         };
 
-        if (!this.validateSignupData(data)) {
+        console.log('📤 Gönderilen veri:', data);
+
+        // Validasyon
+        const errors = [];
+
+        if (!data.name || data.name.length < 2) {
+            errors.push('İsim en az 2 karakter olmalıdır');
+        }
+
+        if (!data.email) {
+            errors.push('Email adresi gereklidir');
+        } else {
+            const eduEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu\.tr$/;
+            if (!eduEmailRegex.test(data.email)) {
+                errors.push('Lütfen geçerli bir .edu.tr uzantılı email adresi girin');
+            }
+        }
+
+        if (!data.password || data.password.length < 6) {
+            errors.push('Şifre en az 6 karakter olmalıdır');
+        }
+
+        if (!data.university) {
+            errors.push('Üniversite seçiniz');
+        }
+
+        if (!data.department) {
+            errors.push('Bölüm gereklidir');
+        }
+
+        if (!data.year || isNaN(data.year)) {
+            errors.push('Sınıf seçiniz');
+        }
+
+        if (errors.length > 0) {
+            this.showError(errors.join('<br>'));
             return;
         }
 
@@ -112,7 +101,68 @@ class AuthManager {
         this.setLoadingState(submitBtn, true);
 
         try {
-            const response = await fetch('/api/auth/register', {
+            // ÖNEMLİ: Tam URL kullan
+            const response = await fetch('http://localhost:5001/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            console.log('📥 Response status:', response.status);
+
+            const result = await response.json();
+            console.log('📥 API Yanıtı:', result);
+
+            if (response.ok && result.success) {
+                localStorage.setItem('friendzone_token', result.data.token);
+                localStorage.setItem('friendzone_user', JSON.stringify(result.data.user));
+
+                this.showSuccess('Hesabınız başarıyla oluşturuldu!');
+
+                setTimeout(() => {
+                    window.location.href = 'http://localhost:63342/FriendZone/frontend/personality_test.html';
+                }, 1500);
+            } else {
+                throw new Error(result.message || 'Kayıt başarısız');
+            }
+        } catch (error) {
+            console.error('❌ Hata:', error);
+            this.showError('Sunucuya bağlanılamadı: ' + error.message);
+        } finally {
+            this.setLoadingState(submitBtn, false);
+        }
+    }
+
+    async handleLogin(e) {
+        const formData = new FormData(e.target);
+        const data = {
+            email: formData.get('email')?.trim().toLowerCase(),
+            password: formData.get('password')
+        };
+
+        const errors = [];
+
+        if (!data.email) {
+            errors.push('Email adresi gereklidir');
+        }
+
+        if (!data.password || data.password.length < 6) {
+            errors.push('Şifre en az 6 karakter olmalıdır');
+        }
+
+        if (errors.length > 0) {
+            this.showError(errors.join('<br>'));
+            return;
+        }
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        this.setLoadingState(submitBtn, true);
+
+        try {
+            const response = await fetch('http://localhost:5001/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -124,145 +174,45 @@ class AuthManager {
                 localStorage.setItem('friendzone_token', result.data.token);
                 localStorage.setItem('friendzone_user', JSON.stringify(result.data.user));
 
-                this.showSuccess('Hesabınız başarıyla oluşturuldu! Yönlendiriliyorsunuz...');
+                this.showSuccess('Başarıyla giriş yapıldı!');
 
                 setTimeout(() => {
-                    window.location.href = 'personality_test.html';
+                    window.location.href = 'http://localhost:63342/FriendZone/frontend/communities.html';
                 }, 1500);
             } else {
-                throw new Error(result.message || 'Kayıt başarısız');
+                throw new Error(result.message || 'Giriş başarısız');
             }
         } catch (error) {
-            this.showError(error.message);
+            console.error('❌ Hata:', error);
+            this.showError('Sunucuya bağlanılamadı: ' + error.message);
         } finally {
             this.setLoadingState(submitBtn, false);
         }
     }
 
-    validateLoginData(data) {
-        let isValid = true;
-
-        if (!data.email || !this.isValidEmail(data.email)) {
-            this.showFieldError('email', 'Geçerli bir e-posta adresi girin');
-            isValid = false;
-        } else {
-            this.clearFieldError('email');
-        }
-
-        if (!data.password || data.password.length < 6) {
-            this.showFieldError('password', 'Şifre en az 6 karakter olmalıdır');
-            isValid = false;
-        } else {
-            this.clearFieldError('password');
-        }
-
-        return isValid;
-    }
-
-    validateSignupData(data) {
-        let isValid = true;
-
-        if (!data.name || data.name.length < 2) {
-            this.showFieldError('name', 'İsim en az 2 karakter olmalıdır');
-            isValid = false;
-        } else {
-            this.clearFieldError('name');
-        }
-
-        if (!data.email || !this.isValidEmail(data.email)) {
-            this.showFieldError('email', 'Geçerli bir e-posta adresi girin');
-            isValid = false;
-        } else {
-            this.clearFieldError('email');
-        }
-
-        if (!data.password || data.password.length < 6) {
-            this.showFieldError('password', 'Şifre en az 6 karakter olmalıdır');
-            isValid = false;
-        } else {
-            this.clearFieldError('password');
-        }
-
-        if (!data.university) {
-            this.showFieldError('university', 'Üniversite seçiniz');
-            isValid = false;
-        } else {
-            this.clearFieldError('university');
-        }
-
-        return isValid;
-    }
-
-    isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    showFieldError(fieldName, message) {
-        const field = document.getElementById(fieldName);
-        if (!field) return;
-
-        const formGroup = field.closest('.form-group');
-        if (!formGroup) return;
-
-        formGroup.classList.add('error');
-
-        let messageElement = formGroup.querySelector('.form-message');
-        if (!messageElement) {
-            messageElement = document.createElement('div');
-            messageElement.className = 'form-message error';
-            formGroup.appendChild(messageElement);
-        }
-
-        messageElement.textContent = message;
-    }
-
-    clearFieldError(fieldName) {
-        const field = document.getElementById(fieldName);
-        if (!field) return;
-
-        const formGroup = field.closest('.form-group');
-        if (!formGroup) return;
-
-        formGroup.classList.remove('error');
-
-        const messageElement = formGroup.querySelector('.form-message');
-        if (messageElement) {
-            messageElement.remove();
-        }
-    }
-
-    setLoadingState(button, isLoading) {
-        if (isLoading) {
-            button.classList.add('btn-loading');
-            button.disabled = true;
-        } else {
-            button.classList.remove('btn-loading');
-            button.disabled = false;
-        }
-    }
-
     showError(message) {
         this.removeMessages();
-
         const form = document.querySelector('.auth-form');
+        if (!form) return;
+
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
         errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-
         form.insertBefore(errorDiv, form.firstChild);
 
-        setTimeout(() => errorDiv.remove(), 5000);
+        setTimeout(() => {
+            if (errorDiv.parentNode) errorDiv.remove();
+        }, 5000);
     }
 
     showSuccess(message) {
         this.removeMessages();
-
         const form = document.querySelector('.auth-form');
+        if (!form) return;
+
         const successDiv = document.createElement('div');
         successDiv.className = 'success-message';
         successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-
         form.insertBefore(successDiv, form.firstChild);
     }
 
@@ -270,13 +220,24 @@ class AuthManager {
         document.querySelectorAll('.error-message, .success-message').forEach(msg => msg.remove());
     }
 
+    setLoadingState(button, isLoading) {
+        if (isLoading) {
+            button.classList.add('btn-loading');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İşleniyor...';
+        } else {
+            button.classList.remove('btn-loading');
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-user-plus"></i> Hesap Oluştur';
+        }
+    }
+
     checkExistingAuth() {
         const token = localStorage.getItem('friendzone_token');
-        const user = JSON.parse(localStorage.getItem('friendzone_user'));
+        const user = JSON.parse(localStorage.getItem('friendzone_user') || 'null');
 
         if (token && user) {
             const currentPage = window.location.pathname.split('/').pop();
-
             if (currentPage === 'login.html' || currentPage === 'signup.html') {
                 if (user.is_test_completed) {
                     window.location.href = 'communities.html';
@@ -286,50 +247,9 @@ class AuthManager {
             }
         }
     }
-
-    setupRealTimeValidation() {
-        const emailInput = document.getElementById('email');
-        if (emailInput) {
-            emailInput.addEventListener('blur', () => {
-                const value = emailInput.value.trim();
-                if (value && !this.isValidEmail(value)) {
-                    this.showFieldError('email', 'Geçerli bir e-posta adresi girin');
-                } else if (value) {
-                    this.clearFieldError('email');
-                }
-            });
-        }
-
-        const passwordInput = document.getElementById('password');
-        if (passwordInput) {
-            passwordInput.addEventListener('input', () => {
-                this.updatePasswordStrength(passwordInput.value);
-            });
-        }
-    }
-
-    updatePasswordStrength(password) {
-        const strengthBar = document.querySelector('.strength-fill');
-        const strengthText = document.querySelector('.strength-text');
-        const strengthContainer = document.querySelector('.password-strength');
-
-        if (!strengthBar || !strengthText || !strengthContainer) return;
-
-        let strength = 0;
-        if (password.length >= 6) strength++;
-        if (password.length >= 8) strength++;
-        if (/[A-Z]/.test(password)) strength++;
-        if (/[0-9]/.test(password)) strength++;
-        if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-        strengthContainer.setAttribute('data-strength', strength);
-
-        const strengthLabels = ['', 'Çok Zayıf', 'Zayıf', 'Orta', 'İyi', 'Güçlü'];
-        strengthText.textContent = `Şifre gücü: ${strengthLabels[strength]}`;
-    }
 }
 
-// Initialize auth manager
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     window.authManager = new AuthManager();
 });

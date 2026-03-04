@@ -100,7 +100,7 @@
                         <p>FriendZone'a katıl ve topluluklarını keşfet</p>
                     </div>
 
-                    <form class="auth-form" id="signupForm">
+                    <form class="auth-form" id="signupForm" novalidate>
                         <!-- Kişisel Bilgiler Bölümü -->
                         <div class="form-section">
                             <h3 class="section-title">
@@ -124,12 +124,12 @@
                                     <label for="email">Üniversite E-posta *</label>
                                     <div class="input-with-icon">
                                         <i class="fas fa-envelope"></i>
-                                        <input type="email" id="email" name="email" required
-                                               placeholder="ornek@universite.edu.tr">
+                                        <input type="text" id="email" name="email"
+                                              placeholder="ornek@universite.edu.tr">
                                     </div>
                                     <div class="input-hint">
                                         <i class="fas fa-info-circle"></i>
-                                        Sadece üniversite e-posta adresleri kabul edilir
+                                        Sadece .edu.tr uzantılı email adresleri kabul edilir
                                     </div>
                                 </div>
                             </div>
