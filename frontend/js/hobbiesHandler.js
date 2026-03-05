@@ -22,7 +22,7 @@ class HobbiesHandler {
 
     async loadCategories() {
         try {
-            const response = await fetch('/api/test/hobbies-categories');
+            const response = await fetch('http://localhost:5001/api/test/hobbies-categories');
             const data = await response.json();
 
             if (data.success) {
@@ -127,7 +127,7 @@ class HobbiesHandler {
             {
                 id: "outdoor",
                 name: "Açık Hava ve Doğa",
-                activities: ["Doğa Yürüyüşü", "Kamp", "Dağcılık", "Bisiklet", "Balıkçılık"]
+                activities: ["Doğa Yürüyüşü", "Kamp", "Dağcılık", "Bisiklet"]
             },
             {
                 id: "education",
@@ -324,12 +324,20 @@ class HobbiesHandler {
             const user = JSON.parse(localStorage.getItem('friendzone_user'));
             const token = localStorage.getItem('friendzone_token');
 
+            if (!user || !token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             const selectedHobbyNames = Array.from(this.selectedHobbies).map(id => {
                 const hobby = this.hobbies.find(h => h.id === id);
                 return hobby ? hobby.name : id;
             });
 
-            const response = await fetch('/api/test/hobbies', {
+            console.log('📤 Gönderilen hobiler:', selectedHobbyNames);
+            console.log('📤 User ID:', user.id);
+
+            const response = await fetch('http://localhost:5001/api/test/hobbies', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -342,6 +350,7 @@ class HobbiesHandler {
             });
 
             const result = await response.json();
+            console.log('📥 API Yanıtı:', result);
 
             if (response.ok && result.success) {
                 user.hobbies = selectedHobbyNames;
@@ -353,7 +362,7 @@ class HobbiesHandler {
                 throw new Error(result.message || 'Hobiler kaydedilemedi');
             }
         } catch (error) {
-            console.error('Hobi gönderme hatası:', error);
+            console.error('❌ Hobi gönderme hatası:', error);
             alert('Hobiler kaydedilirken bir hata oluştu: ' + error.message);
         } finally {
             this.setLoadingState(submitBtn, false);
@@ -381,7 +390,7 @@ class HobbiesHandler {
         `;
 
         setTimeout(() => {
-            window.location.href = 'communities.html';
+            window.location.href = 'http://localhost:63342/FriendZone/frontend/communities.html';
         }, 3000);
     }
 

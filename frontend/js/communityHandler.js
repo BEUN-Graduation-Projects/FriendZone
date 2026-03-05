@@ -41,53 +41,81 @@ class CommunityHandler {
     }
 
     async loadRecommendedCommunities() {
-        const loadingElement = document.getElementById('recommendationsLoading');
-        if (!loadingElement) return;
+    const loadingElement = document.getElementById('recommendationsLoading');
+    if (!loadingElement) return;
 
-        try {
-            const user = JSON.parse(localStorage.getItem('friendzone_user'));
-            const token = localStorage.getItem('friendzone_token');
+    try {
+        const user = JSON.parse(localStorage.getItem('friendzone_user'));
+        const token = localStorage.getItem('friendzone_token');
 
-            if (!user || !token) return;
+        if (!user || !token) return;
 
-            const response = await fetch(`/api/community/recommendations/${user.id}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+        // AYNI ENDPOINT'İ KULLAN - Önerilenler de aynı topluluklar
+        const response = await fetch('http://localhost:5001/api/community/recommendations/' + user.id, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-            const data = await response.json();
+        const data = await response.json();
+        console.log('📥 Önerilen topluluklar:', data);
 
-            if (data.success) {
-                this.recommendedCommunities = data.recommendations;
-                this.renderRecommendedCommunities();
-            }
+        if (data.success) {
+            // İlk 3'ü öneri olarak göster veya uyum skoruna göre sırala
+            this.recommendedCommunities = data.recommendations
+                .filter(c => !c.is_member) // Üye olmadıklarını göster
+                .sort((a, b) => b.compatibility_score - a.compatibility_score)
+                .slice(0, 3);
 
-            loadingElement.style.display = 'none';
-        } catch (error) {
-            console.error('Önerilen topluluklar yüklenemedi:', error);
-            loadingElement.style.display = 'none';
+            this.renderRecommendedCommunities();
         }
+
+        loadingElement.style.display = 'none';
+    } catch (error) {
+        console.error('❌ Önerilen topluluklar yüklenemedi:', error);
+        loadingElement.style.display = 'none';
     }
+}
+
 
     async loadAllCommunities() {
-        const loadingElement = document.getElementById('communitiesLoading');
-        const emptyElement = document.getElementById('communitiesEmpty');
-        if (!loadingElement) return;
+    const loadingElement = document.getElementById('communitiesLoading');
+    const emptyElement = document.getElementById('communitiesEmpty');
+    if (!loadingElement) return;
 
-        try {
-            this.allCommunities = this.generateSampleCommunities();
-            this.renderAllCommunities();
+    try {
+        const user = JSON.parse(localStorage.getItem('friendzone_user'));
+        const token = localStorage.getItem('friendzone_token');
 
-            loadingElement.style.display = 'none';
-
-            if (this.allCommunities.length === 0 && emptyElement) {
-                emptyElement.style.display = 'block';
-            }
-        } catch (error) {
-            console.error('Topluluklar yüklenemedi:', error);
-            loadingElement.style.display = 'none';
-            if (emptyElement) emptyElement.style.display = 'block';
+        if (!user || !token) {
+            window.location.href = 'login.html';
+            return;
         }
+
+        // TÜM TOPLULUKLARI VERİTABANINDAN GETİR
+        const response = await fetch('http://localhost:5001/api/community/recommendations/' + user.id, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        console.log('📥 Tüm topluluklar:', data);
+
+        if (data.success) {
+            this.allCommunities = data.recommendations;
+            this.renderAllCommunities();
+        } else {
+            throw new Error(data.message || 'Topluluklar yüklenemedi');
+        }
+
+        loadingElement.style.display = 'none';
+
+        if (this.allCommunities.length === 0 && emptyElement) {
+            emptyElement.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('❌ Topluluklar yüklenemedi:', error);
+        loadingElement.style.display = 'none';
+        if (emptyElement) emptyElement.style.display = 'block';
     }
+}
 
     async loadSimilarUsers() {
         const loadingElement = document.getElementById('similarUsersLoading');
@@ -351,92 +379,109 @@ class CommunityHandler {
     }
 
     async handleCreateCommunity() {
-        const form = document.getElementById('createCommunityForm');
-        if (!form) return;
+    const form = document.getElementById('createCommunityForm');
+    if (!form) return;
 
-        const formData = new FormData(form);
-        const data = {
-            name: formData.get('name'),
-            description: formData.get('description'),
-            category: formData.get('category'),
-            max_members: parseInt(formData.get('max_members')),
-            tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()) : []
-        };
+    const formData = new FormData(form);
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        category: formData.get('category'),
+        max_members: parseInt(formData.get('max_members')),
+        tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()) : []
+    };
 
-        const submitBtn = form.querySelector('button[type="submit"]');
-        this.setLoadingState(submitBtn, true);
+    console.log('📤 Topluluk oluşturma verisi:', data);
 
-        try {
-            const user = JSON.parse(localStorage.getItem('friendzone_user'));
-            const token = localStorage.getItem('friendzone_token');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    this.setLoadingState(submitBtn, true);
 
-            if (!user || !token) {
-                window.location.href = 'login.html';
-                return;
-            }
+    try {
+        const user = JSON.parse(localStorage.getItem('friendzone_user'));
+        const token = localStorage.getItem('friendzone_token');
 
-            const response = await fetch('/api/community/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ ...data, created_by: user.id })
-            });
-
-            if (response.ok) {
-                this.hideCreateCommunityModal();
-                form.reset();
-                this.showSuccess('Topluluk başarıyla oluşturuldu!');
-                this.loadUserCommunities();
-                this.loadAllCommunities();
-            } else {
-                throw new Error('Topluluk oluşturulamadı');
-            }
-        } catch (error) {
-            console.error('Topluluk oluşturma hatası:', error);
-            this.showError('Topluluk oluşturulurken bir hata oluştu');
-        } finally {
-            this.setLoadingState(submitBtn, false);
+        if (!user || !token) {
+            window.location.href = 'login.html';
+            return;
         }
-    }
 
-    async handleJoinCommunity(communityId, button) {
-        this.setLoadingState(button, true);
+        const response = await fetch('http://localhost:5001/api/community/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                ...data,
+                created_by: user.id
+            })
+        });
 
-        try {
-            const user = JSON.parse(localStorage.getItem('friendzone_user'));
-            const token = localStorage.getItem('friendzone_token');
+        const result = await response.json();
+        console.log('📥 API Yanıtı:', result);
 
-            if (!user || !token) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const response = await fetch('/api/community/join', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ user_id: user.id, community_id: parseInt(communityId) })
-            });
-
-            if (response.ok) {
-                button.innerHTML = '<i class="fas fa-check"></i> Katıldın';
-                button.classList.add('btn-joined');
-                this.showSuccess('Topluluğa başarıyla katıldın!');
-                this.loadUserCommunities();
-            } else {
-                throw new Error('Topluluğa katılamadı');
-            }
-        } catch (error) {
-            console.error('Topluluğa katılma hatası:', error);
-            this.showError('Topluluğa katılırken bir hata oluştu');
-        } finally {
-            this.setLoadingState(button, false);
+        if (response.ok && result.success) {
+            this.hideCreateCommunityModal();
+            form.reset();
+            this.showSuccess('Topluluk başarıyla oluşturuldu!');
+            this.loadUserCommunities();
+            this.loadAllCommunities();
+        } else {
+            throw new Error(result.message || 'Topluluk oluşturulamadı');
         }
+    } catch (error) {
+        console.error('❌ Topluluk oluşturma hatası:', error);
+        this.showError('Topluluk oluşturulurken bir hata oluştu: ' + error.message);
+    } finally {
+        this.setLoadingState(submitBtn, false);
     }
+}
+
+async handleJoinCommunity(communityId, button) {
+    this.setLoadingState(button, true);
+
+    try {
+        const user = JSON.parse(localStorage.getItem('friendzone_user'));
+        const token = localStorage.getItem('friendzone_token');
+
+        console.log('📤 Katılma isteği:', { user_id: user.id, community_id: communityId });
+
+        if (!user || !token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // DİKKAT: Tam URL kullan!
+        const response = await fetch('http://localhost:5001/api/community/join', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                user_id: user.id,
+                community_id: parseInt(communityId)
+            })
+        });
+
+        const data = await response.json();
+        console.log('📥 API Yanıtı:', data);
+
+        if (response.ok && data.success) {
+            button.innerHTML = '<i class="fas fa-check"></i> Katıldın';
+            button.classList.add('btn-joined');
+            this.showSuccess('Topluluğa başarıyla katıldın!');
+            this.loadUserCommunities();
+        } else {
+            throw new Error(data.message || 'Topluluğa katılamadı');
+        }
+    } catch (error) {
+        console.error('❌ Topluluğa katılma hatası:', error);
+        this.showError('Topluluğa katılırken bir hata oluştu: ' + error.message);
+    } finally {
+        this.setLoadingState(button, false);
+    }
+}
 
     handleSearch(query) {
         const communities = document.querySelectorAll('.community-card');
