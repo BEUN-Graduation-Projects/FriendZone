@@ -12,8 +12,6 @@
 
 </div>
 
-
-
 ## 🎯 Proje Hakkında
 
 **FriendZone**, üniversite öğrencilerinin kişilik özellikleri ve ilgi alanlarına göre **makine öğrenimi (ML)** tabanlı bir şekilde sanal topluluklar oluşturmasını sağlayan sosyal bir platformdur. Bu proje, bir **üniversite bitirme projesi** kapsamında geliştirilmiştir.
