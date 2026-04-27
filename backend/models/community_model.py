@@ -227,9 +227,7 @@ class Community(db.Model):
         """Topluluktaki toplam mesaj sayısı"""
         return self.messages.count()
 
-    # ---------------------------
-    # Serialization
-    # ---------------------------
+
 
     def to_dict(self, include_members: bool = False, include_stats: bool = False):
         """
@@ -354,11 +352,9 @@ class CommunityMember(db.Model):
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True, index=True)
 
-    # Ek bilgiler (opsiyonel)
     last_active = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     message_count = db.Column(db.Integer, default=0)
 
-    # Relationships - TÜM İLİŞKİLER STRING OLARAK TANIMLANMALI!
     community = relationship("Community", back_populates="members")
     user = relationship("User", back_populates="communities", lazy="selectin")
 
