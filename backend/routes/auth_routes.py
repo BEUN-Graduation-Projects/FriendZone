@@ -51,7 +51,6 @@ def register():
             print(f"❌ Email zaten kayıtlı: {data['email']}")
             return error_response("Bu email adresi zaten kayıtlı", 400)
 
-        # Yeni kullanıcı oluştur
         new_user = User(
             name=data['name'].strip(),
             email=data['email'].lower().strip(),
@@ -68,7 +67,6 @@ def register():
 
         print(f"✅ Kullanıcı veritabanına kaydedildi: ID: {new_user.id}")
 
-        # Token oluştur
         token = generate_token(new_user.id)
 
         return success_response({
@@ -107,7 +105,7 @@ def login():
             print(f"❌ Hesap pasif: {data['email']}")
             return error_response("Hesap askıya alınmış", 403)
 
-        # Token oluştur
+
         token = generate_token(user.id)
 
         print(f"✅ Giriş başarılı: {user.email}")
@@ -177,7 +175,7 @@ def update_profile():
 
         data = request.get_json()
 
-        # Güncellenebilir alanlar
+
         updatable_fields = ['name', 'university', 'department', 'year']
 
         for field in updatable_fields:

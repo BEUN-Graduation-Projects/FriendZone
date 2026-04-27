@@ -15,7 +15,7 @@ class PersonalityTestResult(db.Model):
     personality_type = db.Column(db.String(50), nullable=False)  # MBTI tipi veya özel tip
     personality_scores = db.Column(db.JSON, nullable=True)  # Detaylı skorlar
 
-    # Meta bilgiler
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # İlişki
@@ -35,10 +35,10 @@ class HobbyResult(db.Model):
     # Hobi listesi (JSON formatında)
     hobbies = db.Column(db.JSON, nullable=False)
 
-    # Meta bilgiler
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # İlişki
+
     user = db.relationship('User', backref=db.backref('hobby_result', uselist=False))
 
     def __repr__(self):
